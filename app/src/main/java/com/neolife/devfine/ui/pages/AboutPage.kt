@@ -44,7 +44,7 @@ fun AboutScreen(navController: NavController) {
                     text = "О приложении",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color.White
+                    fontSize = 25.sp
                 )
             },
                 navigationIcon = {
@@ -55,7 +55,6 @@ fun AboutScreen(navController: NavController) {
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
                             modifier = Modifier.size(30.dp),
-                            tint = Color.White
                         )
                     }
                 })
@@ -80,7 +79,6 @@ fun AboutScreen(navController: NavController) {
 
             Text(
                 text = "DevFine $versionName",
-                color = Color.White,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 20.sp
             )
@@ -105,7 +103,7 @@ fun AboutScreen(navController: NavController) {
                 TextButton(onClick = {
                     //СДЕЛАТЬ ПОДДЕРЖКУ
                 }) {
-                    Text(text = "Сообщить об ошибке", color = Color.White, fontSize = 20.sp)
+                    Text(text = "Сообщить об ошибке", fontSize = 20.sp)
                 }
             }
         }

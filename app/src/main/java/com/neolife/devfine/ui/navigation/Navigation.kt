@@ -46,7 +46,7 @@ fun HomeNavHost(modifier: Modifier,
             SearchScreen(navController = navController)
         }
         composable(route = Screen.RegisterPage.route){
-            RegisterScreen()
+            RegisterScreen(navController = navController)
         }
     }
 }

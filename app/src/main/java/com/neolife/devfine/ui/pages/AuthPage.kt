@@ -1,7 +1,6 @@
 package com.neolife.devfine.ui.pages
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,10 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -49,8 +46,7 @@ fun AuthScreen(navController: NavController) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    modifier = Modifier.size(30.dp),
-                    tint = Color.White
+                    modifier = Modifier.size(30.dp)
                 )
             }
         })
@@ -58,8 +54,8 @@ fun AuthScreen(navController: NavController) {
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .padding(top = 40.dp)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             val login = remember {
@@ -84,12 +80,12 @@ fun AuthScreen(navController: NavController) {
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(top = 30.dp)
             )
-            
+
             Spacer(modifier = Modifier.padding(20.dp))
-            
+
             OutlinedTextField(label = {
                 Text(text = "Логин")
-            }, 
+            },
                 value = login.value,
                 onValueChange = { login.value = it })
 
@@ -103,25 +99,31 @@ fun AuthScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.padding(20.dp))
 
-            Button(onClick = { /*TODO*/ }) {
-                    Text(text = "Войти",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 20.sp,
-                        modifier = Modifier
-                            .height(40.dp)
-                            .width(190.dp),
-                        textAlign = TextAlign.Center)
+            Button(
+                onClick = { /*TODO*/ },
+                shape = RoundedCornerShape(5.dp),
+                modifier = Modifier
+                    .width(250.dp)
+                    .height(50.dp),
+
+            ) {
+                Text(
+                    text = "Войти",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 20.sp
+                )
             }
 
             Spacer(modifier = Modifier.padding(15.dp))
 
-           Row(
-               verticalAlignment = Alignment.CenterVertically) {
-               Text(text = "Нет аккаунта?", fontSize = 15.sp)
-               TextButton(onClick = { navController.navigate(Screen.RegisterPage.route) }) {
-                  Text(text = "Регистрация", fontSize = 15.sp)
-               }
-           }
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "Нет аккаунта?", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                TextButton(onClick = { navController.navigate(Screen.RegisterPage.route) }) {
+                    Text(text = "Регистрация", fontSize = 15.sp)
+                }
+            }
         }
     }
 }
