@@ -85,7 +85,7 @@ fun AboutScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Версия от 13.05.2024",
+                text = "Версия от 14.05.2024",
                 color = Color.Gray,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 20.sp

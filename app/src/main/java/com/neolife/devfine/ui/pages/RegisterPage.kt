@@ -20,13 +20,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -67,6 +71,10 @@ fun RegisterScreen(navController: NavController){
                 mutableStateOf("")
             }
 
+            var passwordVisibility: Boolean by remember {
+                mutableStateOf(false)
+            }
+
             Image(
                 painter = painterResource(R.drawable.play_store_512),
                 contentDescription = "Logo",
@@ -104,7 +112,8 @@ fun RegisterScreen(navController: NavController){
                 Text(text = "Пароль")
             },
                 value = passwordReg.value,
-                onValueChange = { passwordReg.value = it })
+                onValueChange = { passwordReg.value = it },
+                visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation())
 
             Spacer(modifier = Modifier.padding(20.dp))
 
