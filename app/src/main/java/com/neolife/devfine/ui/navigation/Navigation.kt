@@ -4,6 +4,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -39,14 +40,14 @@ fun HomeNavHost(modifier: Modifier,
             SettingsScreen(navController = navController)
         }
         composable(route = Screen.AuthPage.route){
-            AuthScreen(navController = navController)
+            AuthScreen(viewModel = viewModel(), navController = navController)
         }
 
         composable(route = Screen.SearchPage.route){
             SearchScreen(navController = navController)
         }
         composable(route = Screen.RegisterPage.route){
-            RegisterScreen(navController = navController)
+            RegisterScreen(viewModel = viewModel(), navController = navController)
         }
     }
 }

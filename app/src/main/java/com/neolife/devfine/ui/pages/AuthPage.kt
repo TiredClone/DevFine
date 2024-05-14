@@ -1,7 +1,9 @@
 package com.neolife.devfine.ui.pages
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,10 +15,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,16 +38,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.neolife.devfine.R
+import com.neolife.devfine.core.network.RequestHandler
+import com.neolife.devfine.di.core.SharedPrefManager
 import com.neolife.devfine.ui.navigation.Screen
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AuthScreen(navController: NavController) {
+fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
     Scaffold(topBar = {
         TopAppBar(title = {
             Text(text = "")
@@ -63,15 +74,8 @@ fun AuthScreen(navController: NavController) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            val login = remember {
-                mutableStateOf("")
-            }
-
             var passwordVisibility: Boolean by remember {
                 mutableStateOf(false)
-            }
-            val password = remember {
-                mutableStateOf("")
             }
 
             Image(
@@ -94,8 +98,8 @@ fun AuthScreen(navController: NavController) {
             OutlinedTextField(label = {
                 Text(text = "Логин")
             },
-                value = login.value,
-                onValueChange = { login.value = it })
+                value = viewModel.login.value,
+                onValueChange = { viewModel.login.value = it})
 
             Spacer(modifier = Modifier.padding(10.dp))
 
@@ -103,13 +107,13 @@ fun AuthScreen(navController: NavController) {
                 Text(text = "Пароль")
             },
                 visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                value = password.value,
-                onValueChange = { password.value = it })
+                value = viewModel.password.value,
+                onValueChange = { viewModel.password.value = it})
 
             Spacer(modifier = Modifier.padding(20.dp))
 
             Button(
-                onClick = { /*TODO*/ },
+                onClick = { viewModel.onLoginClicked() },
                 shape = RoundedCornerShape(5.dp),
                 modifier = Modifier
                     .width(250.dp)
@@ -134,6 +138,64 @@ fun AuthScreen(navController: NavController) {
                     Text(text = "Регистрация", fontSize = 15.sp)
                 }
             }
+
+            if(viewModel.showFailedDialog.value)
+                AlertDialog(
+                    onDismissRequest = { viewModel.showFailedDialog.value = false },
+                    title = { Text(text = viewModel.dialogTitle.value) },
+                    text = {
+                        Text(text = viewModel.dialogCaption.value)
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { viewModel.showFailedDialog.value = false }) {
+                            Text(text = "OK")
+                        }
+                    }
+                )
+
+            if (viewModel.isLoading.value)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+        }
+    }
+}
+
+class AuthViewModel : ViewModel() {
+    val login = mutableStateOf(TextFieldValue())
+    val password = mutableStateOf(TextFieldValue())
+    val showFailedDialog = mutableStateOf(false)
+    val dialogTitle = mutableStateOf("Error")
+    val dialogCaption = mutableStateOf("Error")
+    val isLoading = mutableStateOf(false)
+
+    fun onLoginClicked() {
+        if (login.value.text == "" || password.value.text == "") {
+            isLoading.value = false
+            dialogTitle.value = "Ошибка"
+            dialogCaption.value = "Пожалуйста введите логин и пароль"
+            showFailedDialog.value = true
+            return
+        }
+        viewModelScope.launch {
+            isLoading.value = true
+            val req = RequestHandler.login(login.value.text, password.value.text)
+            println(req)
+            if (req == "" || req == null) {
+                isLoading.value = false
+                dialogTitle.value = "Ошибка"
+                dialogCaption.value = "Неправильный логин или пароль"
+                showFailedDialog.value = true
+                return@launch
+            }
+            SharedPrefManager().saveRefreshToken(req)
+            isLoading.value = false
+            println("yeah bro. you are authenticated. Do the UI Part")
         }
     }
 }

@@ -2,6 +2,7 @@ package com.neolife.devfine
 
 import android.app.Application
 import com.neolife.devfine.di.core.AppInfoModel
+import com.neolife.devfine.di.core.SharedPrefModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -12,7 +13,7 @@ class DevFine: Application() {
         startKoin{
             androidLogger()
             androidContext(this@DevFine)
-            modules(AppInfoModel.prefModule)
+            modules(AppInfoModel.module, SharedPrefModel.module)
         }
     }
 }

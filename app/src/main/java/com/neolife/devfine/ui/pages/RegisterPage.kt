@@ -1,6 +1,8 @@
 package com.neolife.devfine.ui.pages
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,13 +13,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,15 +36,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.neolife.devfine.R
+import com.neolife.devfine.core.network.RequestHandler
+import com.neolife.devfine.di.core.SharedPrefManager
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(navController: NavController){
+fun RegisterScreen(viewModel: RegisterViewModel, navController: NavController){
     Scaffold(topBar = {
         TopAppBar(title = {
             Text(text = "")
@@ -59,17 +71,6 @@ fun RegisterScreen(navController: NavController){
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            val loginReg = remember {
-                mutableStateOf("")
-            }
-
-            val passwordReg = remember {
-                mutableStateOf("")
-            }
-
-            val emailReg = remember {
-                mutableStateOf("")
-            }
 
             var passwordVisibility: Boolean by remember {
                 mutableStateOf(false)
@@ -95,30 +96,30 @@ fun RegisterScreen(navController: NavController){
             OutlinedTextField(label = {
                 Text(text = "Логин")
             },
-                value = loginReg.value,
-                onValueChange = { loginReg.value = it })
+                value = viewModel.login.value,
+                onValueChange = { viewModel.login.value = it})
 
-            Spacer(modifier = Modifier.padding(10.dp))
-
-            OutlinedTextField(label = {
-                Text(text = "Почта")
-            },
-                value = emailReg.value,
-                onValueChange = { emailReg.value = it })
+//            Spacer(modifier = Modifier.padding(10.dp))
+//
+//            OutlinedTextField(label = {
+//                Text(text = "Почта")
+//            },
+//                value = emailReg.value,
+//                onValueChange = { emailReg.value = it })
 
             Spacer(modifier = Modifier.padding(10.dp))
 
             OutlinedTextField(label = {
                 Text(text = "Пароль")
             },
-                value = passwordReg.value,
-                onValueChange = { passwordReg.value = it },
+                value = viewModel.password.value,
+                onValueChange = { viewModel.password.value = it},
                 visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation())
 
             Spacer(modifier = Modifier.padding(20.dp))
 
             Button(
-                onClick = { /*TODO*/ },
+                onClick = { viewModel.onRegisterClicked() },
                 shape = RoundedCornerShape(5.dp),
                 modifier = Modifier
                     .width(250.dp)
@@ -131,6 +132,62 @@ fun RegisterScreen(navController: NavController){
                     fontSize = 20.sp
                 )
             }
+
+            if(viewModel.showFailedDialog.value)
+                AlertDialog(
+                    onDismissRequest = { viewModel.showFailedDialog.value = false },
+                    title = { Text(text = viewModel.dialogTitle.value) },
+                    text = {
+                        Text(text = viewModel.dialogCaption.value)
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { viewModel.showFailedDialog.value = false }) {
+                            Text(text = "OK")
+                        }
+                    }
+                )
+
+            if (viewModel.isLoading.value)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+        }
+    }
+}
+
+class RegisterViewModel: ViewModel() {
+    val login = mutableStateOf(TextFieldValue())
+    val password = mutableStateOf(TextFieldValue())
+    val showFailedDialog = mutableStateOf(false)
+    val dialogTitle = mutableStateOf("Error")
+    val dialogCaption = mutableStateOf("Error")
+    val isLoading = mutableStateOf(false)
+
+    fun onRegisterClicked() {
+        if (login.value.text == "" || password.value.text == "") {
+            isLoading.value = false
+            dialogTitle.value = "Ошибка"
+            dialogCaption.value = "Пожалуйста введите логин и пароль"
+            showFailedDialog.value = true
+            return
+        }
+        viewModelScope.launch {
+            isLoading.value = true
+            val req = RequestHandler.registerUser(login.value.text, password.value.text)
+            if (req == null || !req) {
+                isLoading.value = false
+                dialogTitle.value = "Ошибка"
+                dialogCaption.value = "Что-то пошло не так. Возможно пользователь уже существует."
+                showFailedDialog.value = true
+                return@launch
+            }
+            isLoading.value = false
+            println("yeah bro. you are registered. Do the UI Part with redirect to login page")
         }
     }
 }
