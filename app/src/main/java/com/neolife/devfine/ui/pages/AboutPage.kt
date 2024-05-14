@@ -64,13 +64,12 @@ fun AboutScreen(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp),
+                .padding(innerPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             Image(
-                painter = painterResource(id = R.drawable.play_store_512),
+                painter = painterResource(R.drawable.play_store_512),
                 contentDescription = "App Icon",
                 Modifier
                     .size(120.dp)

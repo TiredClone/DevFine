@@ -1,8 +1,6 @@
 package com.neolife.devfine.ui.pages
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -54,18 +52,12 @@ fun MainScreen() {
                 }
             }
         }
-    }) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
+    }) {
             HomeNavHost(
                 modifier = Modifier
                     .fillMaxSize(),
                 startDestination = startDestination,
-                navController = localNavController
+                navController = localNavController,
             )
         }
     }
-}

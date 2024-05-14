@@ -1,5 +1,7 @@
 package com.neolife.devfine.ui.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -9,6 +11,7 @@ import com.neolife.devfine.ui.pages.AboutScreen
 import com.neolife.devfine.ui.pages.AuthScreen
 import com.neolife.devfine.ui.pages.HomeScreen
 import com.neolife.devfine.ui.pages.MainScreen
+import com.neolife.devfine.ui.pages.RegisterScreen
 import com.neolife.devfine.ui.pages.SearchScreen
 import com.neolife.devfine.ui.pages.SettingsScreen
 
@@ -19,7 +22,9 @@ fun HomeNavHost(modifier: Modifier,
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None }
     ) {
         composable(route = Screen.HomePage.route){
             HomeScreen(navController = navController)
@@ -39,6 +44,9 @@ fun HomeNavHost(modifier: Modifier,
 
         composable(route = Screen.SearchPage.route){
             SearchScreen(navController = navController)
+        }
+        composable(route = Screen.RegisterPage.route){
+            RegisterScreen()
         }
     }
 }
