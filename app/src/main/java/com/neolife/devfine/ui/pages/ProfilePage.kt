@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.neolife.devfine.core.network.RequestHandler
 import com.neolife.devfine.di.core.SharedPrefManager
 import com.neolife.devfine.ui.navigation.Screen
@@ -56,7 +57,8 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
         ) {
 
             if (!viewModel.isLoading.value) {
-                Text(text="ИДИ НАХУЙ ПИДОРАС")
+                AsyncImage(model = viewModel.avatar.value, contentDescription = null)
+                Text(text= viewModel.username.value)
             } else {
                 Box(
                     modifier = Modifier

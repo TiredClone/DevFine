@@ -25,8 +25,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         lifecycleScope.launch {
             val url = RequestHandler.getUpdateInfoIfAvailable()
-            if(url != "null")
-            {
+            if(url != "null") {
                 val dialogBuilder = AlertDialog.Builder(this@MainActivity)
                 dialogBuilder.setTitle("Update Available")
                 dialogBuilder.setMessage("A new version of the app is available. Would you like to update now?")

@@ -83,6 +83,7 @@ fun SettingsScreen(navController: NavController, viewModel: ProfileViewModel) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp)
+                                .clickable { navController.navigate(Screen.ProfilePage.route)}
                         ) {
                             Box(
                                 modifier = Modifier
