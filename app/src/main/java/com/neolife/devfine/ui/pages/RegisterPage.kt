@@ -46,6 +46,7 @@ import androidx.navigation.NavController
 import com.neolife.devfine.R
 import com.neolife.devfine.core.network.RequestHandler
 import com.neolife.devfine.di.core.SharedPrefManager
+import com.neolife.devfine.ui.navigation.Screen
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -119,7 +120,7 @@ fun RegisterScreen(viewModel: RegisterViewModel, navController: NavController){
             Spacer(modifier = Modifier.padding(20.dp))
 
             Button(
-                onClick = { viewModel.onRegisterClicked() },
+                onClick = { viewModel.onRegisterClicked(navController) },
                 shape = RoundedCornerShape(5.dp),
                 modifier = Modifier
                     .width(250.dp)
@@ -168,7 +169,7 @@ class RegisterViewModel: ViewModel() {
     val dialogCaption = mutableStateOf("Error")
     val isLoading = mutableStateOf(false)
 
-    fun onRegisterClicked() {
+    fun onRegisterClicked(navController: NavController) {
         if (login.value.text == "" || password.value.text == "") {
             isLoading.value = false
             dialogTitle.value = "Ошибка"
@@ -187,7 +188,7 @@ class RegisterViewModel: ViewModel() {
                 return@launch
             }
             isLoading.value = false
-            println("yeah bro. you are registered. Do the UI Part with redirect to login page")
+            navController.navigate(Screen.AuthPage.route)
         }
     }
 }

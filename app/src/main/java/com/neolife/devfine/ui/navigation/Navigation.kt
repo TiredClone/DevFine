@@ -12,10 +12,10 @@ import com.neolife.devfine.ui.pages.AboutScreen
 import com.neolife.devfine.ui.pages.AuthScreen
 import com.neolife.devfine.ui.pages.HomeScreen
 import com.neolife.devfine.ui.pages.MainScreen
+import com.neolife.devfine.ui.pages.ProfileScreen
 import com.neolife.devfine.ui.pages.RegisterScreen
 import com.neolife.devfine.ui.pages.SearchScreen
 import com.neolife.devfine.ui.pages.SettingsScreen
-
 @Composable
 fun HomeNavHost(modifier: Modifier,
                 startDestination: String,
@@ -37,7 +37,7 @@ fun HomeNavHost(modifier: Modifier,
             AboutScreen(navController = navController)
         }
         composable(route = Screen.SettingsPage.route){
-            SettingsScreen(navController = navController)
+            SettingsScreen(navController = navController, viewModel = viewModel())
         }
         composable(route = Screen.AuthPage.route){
             AuthScreen(viewModel = viewModel(), navController = navController)
@@ -48,6 +48,9 @@ fun HomeNavHost(modifier: Modifier,
         }
         composable(route = Screen.RegisterPage.route){
             RegisterScreen(viewModel = viewModel(), navController = navController)
+        }
+        composable(route = Screen.ProfilePage.route){
+            ProfileScreen(navController = navController , viewModel = viewModel())
         }
     }
 }

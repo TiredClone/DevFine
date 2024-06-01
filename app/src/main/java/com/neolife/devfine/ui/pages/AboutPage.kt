@@ -49,7 +49,7 @@ fun AboutScreen(navController: NavController) {
             },
                 navigationIcon = {
                     IconButton(onClick = {
-                        navController.navigate(Screen.SettingsPage.route)
+                        navController.popBackStack()
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,

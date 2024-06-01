@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,7 +73,7 @@ fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            var passwordVisibility: Boolean by remember {
+            val passwordVisibility: Boolean by remember {
                 mutableStateOf(false)
             }
 
@@ -113,7 +112,7 @@ fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
             Spacer(modifier = Modifier.padding(20.dp))
 
             Button(
-                onClick = { viewModel.onLoginClicked() },
+                onClick = { viewModel.onLoginClicked(navController) },
                 shape = RoundedCornerShape(5.dp),
                 modifier = Modifier
                     .width(250.dp)
@@ -174,7 +173,7 @@ class AuthViewModel : ViewModel() {
     val dialogCaption = mutableStateOf("Error")
     val isLoading = mutableStateOf(false)
 
-    fun onLoginClicked() {
+    fun onLoginClicked(navController: NavController) {
         if (login.value.text == "" || password.value.text == "") {
             isLoading.value = false
             dialogTitle.value = "Ошибка"
@@ -186,16 +185,21 @@ class AuthViewModel : ViewModel() {
             isLoading.value = true
             val req = RequestHandler.login(login.value.text, password.value.text)
             println(req)
-            if (req == "" || req == null) {
+            if (req == null) {
                 isLoading.value = false
                 dialogTitle.value = "Ошибка"
                 dialogCaption.value = "Неправильный логин или пароль"
                 showFailedDialog.value = true
                 return@launch
             }
-            SharedPrefManager().saveRefreshToken(req)
+            SharedPrefManager().saveRefreshToken(req.refreshToken, req.username)
             isLoading.value = false
-            println("yeah bro. you are authenticated. Do the UI Part")
+            navController.navigate(Screen.SettingsPage.route) {
+                popUpTo(navController.graph.id)
+                {
+                    inclusive = true
+                }
+            }
         }
     }
 }

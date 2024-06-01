@@ -59,6 +59,8 @@ android {
 
 dependencies {
 
+    implementation(libs.coil.kt)
+    implementation(libs.android.core.splashscreen)
     implementation(libs.koin.android)
     implementation(libs.koin.core)
     implementation(libs.kotlinx.coroutines.core)

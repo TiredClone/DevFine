@@ -16,11 +16,18 @@ class SharedPrefManager : KoinComponent {
         return refreshToken
     }
 
-    fun saveRefreshToken(refreshToken: String) {
+    fun saveRefreshToken(refreshToken: String, username: String) {
         sharedPreferences.edit().putString("refresh_token", refreshToken).apply()
+        sharedPreferences.edit().putString("username", username).apply()
     }
 
     fun removeRefreshToken() {
         sharedPreferences.edit().remove("refresh_token").apply()
+        sharedPreferences.edit().remove("username").apply()
+    }
+
+    fun getUsername(): String?{
+        val username = sharedPreferences.getString("username", null)
+        return username
     }
 }

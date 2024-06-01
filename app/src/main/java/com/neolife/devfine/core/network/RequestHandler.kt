@@ -6,10 +6,10 @@ import com.neolife.devfine.core.network.responses.LoginResponse
 import com.neolife.devfine.core.network.responses.RefreshTokenResponse
 import com.neolife.devfine.core.network.responses.UserInfo
 import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.request.url
-import io.ktor.client.utils.EmptyContent.contentType
 import io.ktor.http.ContentType
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
@@ -19,15 +19,13 @@ import kotlinx.serialization.SerializationException
 object RequestHandler {
     private val client = KtorInstance.getHttpClient()
 
-    private const val BASEURL = "192.168.100.30" //    DO NOT FORGET TO CHANGE IF PROD!
-
-    private const val PORT = 8080 //    DO NOT FORGET TO CHANGE IF PROD
+    private const val BASEURL = "devfine.tiredclone.me" //    DO NOT FORGET TO CHANGE IF PROD!
 
     private var accessToken = ""
 
-    private val PROTOCOL = URLProtocol.HTTP //  DO NOT FORGET TO CHANGE IF PROD!
+    private val PROTOCOL = URLProtocol.HTTPS //  DO NOT FORGET TO CHANGE IF PROD!
 
-    suspend fun login(username: String, password: String): String? {
+    suspend fun login(username: String, password: String): LoginResponse? {
 
         val requestBody = LoginRequest(username, password)
         try {
@@ -35,7 +33,6 @@ object RequestHandler {
                 url {
                     protocol = PROTOCOL
                     host = BASEURL
-                    port = PORT
                     path("api/auth")
                 }
                 contentType(ContentType.Application.Json)
@@ -45,10 +42,7 @@ object RequestHandler {
 
             this.accessToken = res.accessToken
 
-            return res.refreshToken
-        }
-        catch (e: SerializationException) {
-            return ""
+            return res
         }
         catch (e: Exception) {
             println(e.message)
@@ -63,7 +57,6 @@ object RequestHandler {
                 url {
                     protocol = PROTOCOL
                     host = BASEURL
-                    port = PORT
                     path("api/users/register")
                 }
                 contentType(ContentType.Application.Json)
@@ -88,7 +81,6 @@ object RequestHandler {
                 url {
                     protocol = PROTOCOL
                     host = BASEURL
-                    port = PORT
                     path("api/auth/refresh")
                 }
                 contentType(ContentType.Application.Json)
@@ -96,10 +88,34 @@ object RequestHandler {
             }
             val res: RefreshTokenResponse = req.body()
 
+            accessToken = res.token
+
             return res.token
         }
         catch (e: SerializationException) {
             return ""
+        }
+        catch (e: Exception) {
+            return null
+        }
+    }
+
+    suspend fun getProfileByUsername(username: String): UserInfo? {
+        try {
+            val req = client.get {
+                headers{
+                    append("Authorization", "Bearer $accessToken")
+                }
+                url {
+                    protocol = PROTOCOL
+                    host = BASEURL
+                    path("api/users/username/$username")
+                }
+                contentType(ContentType.Application.Json)
+            }
+            val res: UserInfo  = req.body()
+
+            return res
         }
         catch (e: Exception) {
             return null

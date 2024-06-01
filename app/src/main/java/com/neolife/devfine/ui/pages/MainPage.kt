@@ -1,5 +1,6 @@
 package com.neolife.devfine.ui.pages
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
@@ -17,6 +18,7 @@ import com.neolife.devfine.ui.navigation.BottomNavItem
 import com.neolife.devfine.ui.navigation.HomeNavHost
 import com.neolife.devfine.ui.navigation.Screen
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainScreen() {
     val localNavController = rememberNavController()
