@@ -4,8 +4,13 @@ import com.neolife.devfine.core.network.requests.LoginRequest
 import com.neolife.devfine.core.network.requests.RefreshTokenRequest
 import com.neolife.devfine.core.network.responses.LoginResponse
 import com.neolife.devfine.core.network.responses.RefreshTokenResponse
+import com.neolife.devfine.core.network.responses.ReleaseResponse
 import com.neolife.devfine.core.network.responses.UserInfo
+import com.neolife.devfine.di.core.AppInfoManager
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
@@ -14,7 +19,9 @@ import io.ktor.http.ContentType
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.path
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 
 object RequestHandler {
     private val client = KtorInstance.getHttpClient()
@@ -121,4 +128,24 @@ object RequestHandler {
             return null
         }
     }
+
+    suspend fun getUpdateInfoIfAvailable(): String {
+        val cl = HttpClient(OkHttp) {
+            install(ContentNegotiation) {
+                json(Json { ignoreUnknownKeys = true })
+            }
+        }
+        val req = cl.get("https://api.github.com/repos/TiredClone/DevFine/releases/latest")
+        val res: ReleaseResponse = req.body()
+
+        val oldVersion = AppInfoManager().getAppVersion()
+
+        return if (oldVersion != res.name) {
+            res.assets[0].browser_download_url
+        } else {
+            "null"
+        }
+    }
+
+
 }

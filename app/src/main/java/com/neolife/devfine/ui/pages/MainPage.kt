@@ -18,7 +18,9 @@ import com.neolife.devfine.ui.navigation.BottomNavItem
 import com.neolife.devfine.ui.navigation.HomeNavHost
 import com.neolife.devfine.ui.navigation.Screen
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "CoroutineCreationDuringComposition",
+    "UnrememberedMutableState"
+)
 @Composable
 fun MainScreen() {
     val localNavController = rememberNavController()
@@ -62,4 +64,5 @@ fun MainScreen() {
                 navController = localNavController,
             )
         }
-    }
+}
+

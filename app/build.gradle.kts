@@ -58,7 +58,7 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.github.piashsarker.androidAppUpdateLibrary)
     implementation(libs.coil.kt)
     implementation(libs.android.core.splashscreen)
     implementation(libs.koin.android)
