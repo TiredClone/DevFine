@@ -1,8 +1,12 @@
 package com.neolife.devfine.ui.pages
 
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +25,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +49,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
     viewModel.loadingUserData(navController)
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    val launcher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri:   Uri? ->
+            imageUri = uri
+        }
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(text = "") },
@@ -71,6 +83,9 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
                     modifier = Modifier
                         .clip(CircleShape)
                         .size(180.dp)
+                        .clickable {
+                            launcher.launch("image/jpg")
+                        }
                         .border(2.dp, color = MaterialTheme.colorScheme.outline, CircleShape)
                 )
                 

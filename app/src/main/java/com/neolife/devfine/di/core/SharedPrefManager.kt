@@ -30,4 +30,9 @@ class SharedPrefManager : KoinComponent {
         val username = sharedPreferences.getString("username", null)
         return username
     }
+
+    fun getPostTitle(): String?{
+        val postTitle = sharedPreferences.getString("title", null)
+        return postTitle
+    }
 }
