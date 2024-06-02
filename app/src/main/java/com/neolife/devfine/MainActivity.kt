@@ -25,15 +25,16 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         lifecycleScope.launch {
             val url = RequestHandler.getUpdateInfoIfAvailable()
-            if(url != "null") {
+            if(url != null) {
                 val dialogBuilder = AlertDialog.Builder(this@MainActivity)
-                dialogBuilder.setTitle("Update Available")
-                dialogBuilder.setMessage("A new version of the app is available. Would you like to update now?")
-                dialogBuilder.setPositiveButton("Update Now") { _, _ ->
+                dialogBuilder.setTitle("Доступно обновление")
+                dialogBuilder.setMessage("Доступна новая версия приложения. Обновить прямо сейчас?")
+                dialogBuilder.setPositiveButton("Обновить") { _, _ ->
                     val downloadApk = DownloadApk(this@MainActivity)
 
-                    downloadApk.startDownloadingApk(url)
-                    downloadApk.startDownloadingApk(url, "Update")
+                    if (url != null) {
+                        downloadApk.startDownloadingApk(url)
+                    }
                 }
                 val alertDialog = dialogBuilder.create()
                 alertDialog.setCancelable(false)

@@ -3,6 +3,8 @@ package com.neolife.devfine.core.network
 import com.neolife.devfine.core.network.requests.LoginRequest
 import com.neolife.devfine.core.network.requests.RefreshTokenRequest
 import com.neolife.devfine.core.network.responses.LoginResponse
+import com.neolife.devfine.core.network.responses.Post
+import com.neolife.devfine.core.network.responses.PostCreate
 import com.neolife.devfine.core.network.responses.RefreshTokenResponse
 import com.neolife.devfine.core.network.responses.ReleaseResponse
 import com.neolife.devfine.core.network.responses.UserInfo
@@ -11,9 +13,11 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.URLProtocol
@@ -129,7 +133,7 @@ object RequestHandler {
         }
     }
 
-    suspend fun getUpdateInfoIfAvailable(): String {
+    suspend fun getUpdateInfoIfAvailable(): String? {
         val cl = HttpClient(OkHttp) {
             install(ContentNegotiation) {
                 json(Json { ignoreUnknownKeys = true })
@@ -140,12 +144,91 @@ object RequestHandler {
 
         val oldVersion = AppInfoManager().getAppVersion()
 
-        return if (oldVersion != res.name) {
+        return if (oldVersion < res.name) {
             res.assets[0].browser_download_url
         } else {
-            "null"
+            null
         }
     }
 
+    suspend fun getAllPosts(): MutableList<Post> {
+        val req = client.get {
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/posts/getAll")
+            }
+        }
+
+        val res: MutableList<Post> = req.body()
+
+        return res
+    }
+
+    suspend fun getPostById(id: Int): Post {
+        val req = client.get {
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/posts/$id")
+            }
+            contentType(ContentType.Application.Json)
+        }
+
+        val res: Post = req.body()
+
+        return res
+    }
+
+    suspend fun createPost(title: String, content: String): Int {
+        val req = client.post {
+            headers{
+                append("Authorization", "Bearer $accessToken")
+            }
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/posts/create")
+            }
+            setBody(PostCreate(title, content))
+            contentType(ContentType.Application.Json)
+        }
+
+        val res: Post = req.body()
+        return res.id
+    }
+
+
+    suspend fun editPost(id: Int, title: String, content: String): Int {
+        val req = client.put {
+            headers{
+                append("Authorization", "Bearer $accessToken")
+            }
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/posts/$id")
+            }
+            setBody(PostCreate(title, content))
+            contentType(ContentType.Application.Json)
+        }
+        val res: Post = req.body()
+        return res.id
+    }
+
+    suspend fun removePost(id: Int): Boolean {
+        val req = client.delete {
+            headers{
+                append("Authorization", "Bearer $accessToken")
+            }
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/posts/$id")
+            }
+            contentType(ContentType.Application.Json)
+        }
+        return true
+    }
 
 }

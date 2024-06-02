@@ -1,5 +1,6 @@
 package com.neolife.devfine.ui.pages
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.ColorLens
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -74,16 +76,18 @@ fun SettingsScreen(navController: NavController, viewModel: ProfileViewModel) {
                                 modifier = Modifier.size(30.dp)
                             )
                         },
-                        modifier = Modifier.fillMaxWidth().clickable {
-                            navController.navigate(Screen.AuthPage.route)
-                        })
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                navController.navigate(Screen.AuthPage.route)
+                            })
                 } else {
                     if (viewModel.isLoading.value) {
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp)
-                                .clickable { navController.navigate(Screen.ProfilePage.route)}
+                                .clickable { navController.navigate(Screen.ProfilePage.route) }
                         ) {
                             Box(
                                 modifier = Modifier
@@ -104,7 +108,9 @@ fun SettingsScreen(navController: NavController, viewModel: ProfileViewModel) {
                                     text = viewModel.username.value,
                                     modifier = Modifier
                                         .align(Alignment.Center)
-                                        .padding(start = 80.dp)
+                                        .padding(start = 80.dp),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp
                                 )
                             }
                         }
@@ -138,18 +144,43 @@ fun SettingsScreen(navController: NavController, viewModel: ProfileViewModel) {
                                     modifier = Modifier.size(30.dp)
                                 )
                             },
-                            modifier = Modifier.fillMaxWidth().clickable {
-                                SharedPrefManager().removeRefreshToken()
-                            })
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    SharedPrefManager().removeRefreshToken()
+                                })
                     }
                 }
             }
             item {
-            HorizontalDivider(
-                thickness = 1.dp,
-                color = Color.Gray,
-                modifier = Modifier.padding(top = 30.dp, bottom = 30.dp)
-            )
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
+                )
+            }
+            item {
+                ListItem(headlineContent = {
+                    Text(
+                        text = "Оформление",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
+                    leadingContent = {
+                        Icon(
+                            imageVector = Icons.Outlined.ColorLens,
+                            contentDescription = "Theme",
+                            modifier = Modifier.size(30.dp)
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 10.dp)
+                        .clickable {
+                            navController.navigate(Screen.ThemePage.route)
+                        }
+                )
             }
             item {
                 ListItem(headlineContent = {
@@ -166,11 +197,13 @@ fun SettingsScreen(navController: NavController, viewModel: ProfileViewModel) {
                             modifier = Modifier.size(30.dp)
                         )
                     },
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        navController.navigate(Screen.AboutPage.route)
-                    })
-
-                }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            navController.navigate(Screen.AboutPage.route)
+                        }
+                )
+            }
         }
     }
 }

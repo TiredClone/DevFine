@@ -39,7 +39,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
         topBar = {
             TopAppBar(title = { Text(text = "") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = { navController.navigate(Screen.SettingsPage.route) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
