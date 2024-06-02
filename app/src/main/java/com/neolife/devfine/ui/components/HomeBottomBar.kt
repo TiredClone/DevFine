@@ -39,7 +39,7 @@ fun HomeBottomBar(
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = colorResource(R.color.lightBlue),
                     indicatorColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
-                         LocalAbsoluteTonalElevation.current
+                        LocalAbsoluteTonalElevation.current
                     )
                 ),
                 icon = {
@@ -47,7 +47,7 @@ fun HomeBottomBar(
                         imageVector = destination.icon,
                         contentDescription = null,
                         modifier = modifier.size(32.dp),
-                        )
+                    )
                 })
         }
     }

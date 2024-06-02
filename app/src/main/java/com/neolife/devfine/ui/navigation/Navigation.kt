@@ -10,8 +10,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.neolife.devfine.ui.pages.AboutScreen
 import com.neolife.devfine.ui.pages.AuthScreen
+import com.neolife.devfine.ui.pages.CreatePostScreen
 import com.neolife.devfine.ui.pages.HomeScreen
 import com.neolife.devfine.ui.pages.MainScreen
+import com.neolife.devfine.ui.pages.PostScreen
 import com.neolife.devfine.ui.pages.ProfileScreen
 import com.neolife.devfine.ui.pages.RegisterScreen
 import com.neolife.devfine.ui.pages.SearchScreen
@@ -46,7 +48,7 @@ fun HomeNavHost(modifier: Modifier,
         }
 
         composable(route = Screen.SearchPage.route){
-            SearchScreen(navController = navController)
+            SearchScreen(navController = navController, viewModel = viewModel())
         }
         composable(route = Screen.RegisterPage.route){
             RegisterScreen(viewModel = viewModel(), navController = navController)
@@ -57,6 +59,13 @@ fun HomeNavHost(modifier: Modifier,
 
         composable(route = Screen.ThemePage.route){
             ThemeScreen(navController = navController)
+        }
+        composable(route = Screen.CreatePostPage.route){
+            CreatePostScreen(navController = navController, viewModel = viewModel())
+        }
+
+        composable(route = Screen.PostPage.route){
+            PostScreen(navController = navController, viewModel = viewModel())
         }
     }
 }

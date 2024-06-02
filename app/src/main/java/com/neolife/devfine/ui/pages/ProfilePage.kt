@@ -2,11 +2,14 @@ package com.neolife.devfine.ui.pages
 
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
@@ -21,7 +24,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -43,7 +50,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            modifier = Modifier.size(30.dp),
+                            modifier = Modifier.size(30.dp)
                         )
                     }
                 })
@@ -57,8 +64,23 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
         ) {
 
             if (!viewModel.isLoading.value) {
-                AsyncImage(model = viewModel.avatar.value, contentDescription = null)
-                Text(text= viewModel.username.value)
+                AsyncImage(
+                    model = viewModel.avatar.value,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .size(180.dp)
+                        .border(2.dp, color = MaterialTheme.colorScheme.outline, CircleShape)
+                )
+                
+                Spacer(modifier = Modifier.size(20.dp))
+
+                Text(text = viewModel.username.value,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 25.sp)
+
+                Spacer(modifier = Modifier.size(20.dp))
             } else {
                 Box(
                     modifier = Modifier
@@ -100,7 +122,8 @@ class ProfileViewModel : ViewModel() {
                 navController.navigate(Screen.AuthPage.route)
             } else {
                 username.value = infoReq.username
-                avatar.value = "https://devfine.tiredclone.me/api/users/images?filename=${infoReq.profilePicture}"
+                avatar.value =
+                    "https://devfine.tiredclone.me/api/users/images?filename=${infoReq.profilePicture}"
                 isLoading.value = false
             }
         }
