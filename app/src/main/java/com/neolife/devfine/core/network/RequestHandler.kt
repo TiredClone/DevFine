@@ -5,6 +5,7 @@ import com.neolife.devfine.core.network.requests.RefreshTokenRequest
 import com.neolife.devfine.core.network.responses.LoginResponse
 import com.neolife.devfine.core.network.responses.Post
 import com.neolife.devfine.core.network.responses.PostCreate
+import com.neolife.devfine.core.network.responses.PostView
 import com.neolife.devfine.core.network.responses.RefreshTokenResponse
 import com.neolife.devfine.core.network.responses.ReleaseResponse
 import com.neolife.devfine.core.network.responses.UserInfo
@@ -14,12 +15,16 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.delete
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.path
@@ -165,17 +170,16 @@ object RequestHandler {
         return res
     }
 
-    suspend fun getPostById(id: Int): Post {
+    suspend fun getPostById(id: Int): PostView {
         val req = client.get {
             url {
                 protocol = PROTOCOL
                 host = BASEURL
                 path("api/posts/$id")
             }
-            contentType(ContentType.Application.Json)
         }
 
-        val res: Post = req.body()
+        val res: PostView = req.body()
 
         return res
     }
@@ -230,5 +234,32 @@ object RequestHandler {
         }
         return true
     }
+
+    suspend fun changeAvatar(image: ByteArray?) {
+        val req = client.post {
+            headers{
+                append("Authorization", "Bearer $accessToken")
+            }
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/users/changeAvatar")
+            }
+            setBody(
+                MultiPartFormDataContent(
+                    formData {
+                        if (image != null) {
+                            append("image", image, Headers.build {
+                                append(HttpHeaders.ContentType, "image/jpeg")
+                                append(HttpHeaders.ContentDisposition, "filename=\"image.jpg\"")
+                            })
+                        }
+                    }
+                )
+            )
+
+        }
+    }
+
 
 }

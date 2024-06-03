@@ -25,14 +25,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,10 +48,23 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
     viewModel.loadingUserData(navController)
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val launcher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri:   Uri? ->
-            imageUri = uri
+            if (uri != null) {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val imageByteArray = inputStream?.readBytes()
+
+                scope.launch {
+                    RequestHandler.changeAvatar(imageByteArray)
+                    navController.navigate(Screen.ProfilePage.route) {
+                        popUpTo(Screen.ProfilePage.route) {
+                            saveState = true
+                        }
+                    }
+                }
+            }
         }
     Scaffold(
         topBar = {
@@ -84,7 +96,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
                         .clip(CircleShape)
                         .size(180.dp)
                         .clickable {
-                            launcher.launch("image/jpg")
+                            launcher.launch("image/jpeg")
                         }
                         .border(2.dp, color = MaterialTheme.colorScheme.outline, CircleShape)
                 )

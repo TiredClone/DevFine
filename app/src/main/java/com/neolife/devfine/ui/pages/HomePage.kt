@@ -48,7 +48,7 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp)
-                            .clickable { navController.navigate(Screen.PostPage.route) }
+                            .clickable { navController.navigate(Screen.PostPage.route.replace("{post_id}", data.id.toString())) }
                     ){
                         Column(
                             modifier = Modifier

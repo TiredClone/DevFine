@@ -39,7 +39,7 @@ fun CreatePostScreen(navController: NavController, viewModel: CreatePostViewMode
         }, value = viewModel.content.value, onValueChange = { viewModel.content.value = it },
             modifier = Modifier.fillMaxWidth())
 
-        Button(onClick = { viewModel.onRegisterClicked(navController) }) {
+        Button(onClick = { viewModel.onCreateClicked(navController) }) {
             Text(
                 text = "Опубликовать",
                 fontWeight = FontWeight.SemiBold,
@@ -57,7 +57,7 @@ class CreatePostViewModel : ViewModel() {
     val dialogCaption = mutableStateOf("Error")
     val isLoading = mutableStateOf(false)
 
-    fun onRegisterClicked(navController: NavController) {
+    fun onCreateClicked(navController: NavController) {
         if (title.value.text == "" || content.value.text == "") {
             isLoading.value = false
             dialogTitle.value = "Ошибка"

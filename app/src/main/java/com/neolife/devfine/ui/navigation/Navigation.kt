@@ -5,8 +5,10 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.neolife.devfine.ui.pages.AboutScreen
 import com.neolife.devfine.ui.pages.AuthScreen
 import com.neolife.devfine.ui.pages.CreatePostScreen
@@ -45,6 +47,12 @@ fun HomeNavHost(
             AuthScreen(viewModel = viewModel(), navController = navController)
         }
 
+        composable(route = Screen.PostPage.route, arguments = listOf(navArgument("post_id") { type = NavType.IntType })) {
+                backStackEntry ->
+            backStackEntry.arguments?.getInt("post_id")
+                ?.let { PostScreen(navController = navController, viewModel = viewModel(), id = it) }
+        }
+
         composable(route = Screen.SearchPage.route){
             SearchScreen(navController = navController, viewModel = viewModel())
         }
@@ -60,10 +68,6 @@ fun HomeNavHost(
         }
         composable(route = Screen.CreatePostPage.route){
             CreatePostScreen(navController = navController, viewModel = viewModel())
-        }
-
-        composable(route = Screen.PostPage.route){
-            PostScreen(navController = navController, viewModel = viewModel())
         }
     }
 }

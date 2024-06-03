@@ -11,5 +11,5 @@ sealed class Screen(val route: String){
     data object ProfilePage: Screen("profile_screen")
     data object ThemePage: Screen("theme_page")
     data object CreatePostPage: Screen("createPost_page")
-    data object PostPage: Screen("Post_page")
+    data object PostPage: Screen("post_page/{post_id}")
 }

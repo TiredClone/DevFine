@@ -1,5 +1,6 @@
 package com.neolife.devfine.ui.pages
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -8,10 +9,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,36 +33,38 @@ import androidx.navigation.NavController
 import com.neolife.devfine.R
 import com.neolife.devfine.di.core.AppInfoManager
 
+@SuppressLint("SuspiciousIndentation")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(navController: NavController) {
     val versionName = AppInfoManager().getAppVersion()
-//    Scaffold(
-////        topBar = {
-////            TopAppBar(title = {
-////                Text(
-////                    text = "О приложении",
-////                    style = MaterialTheme.typography.titleLarge,
-////                    fontWeight = FontWeight.SemiBold,
-////                    fontSize = 25.sp
-////                )
-////            },
-////                navigationIcon = {
-////                    IconButton(onClick = {
-////                        navController.popBackStack()
-////                    }) {
-////                        Icon(
-////                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-////                            contentDescription = "Back",
-////                            modifier = Modifier.size(30.dp),
-////                        )
-////                    }
-////                })
-////        }
-//    ) { innerPadding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(title = {
+                Text(
+                    text = "О приложении",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 25.sp
+                )
+            },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        navController.popBackStack()
+                    }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            modifier = Modifier.size(30.dp),
+                        )
+                    }
+                })
+        }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(innerPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
@@ -76,7 +86,7 @@ fun AboutScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Версия от 14.05.2024",
+                text = "Версия от 03.06.2024",
                 color = Color.Gray,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 20.sp
@@ -98,4 +108,5 @@ fun AboutScreen(navController: NavController) {
                 }
             }
         }
+    }
 }
