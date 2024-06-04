@@ -13,6 +13,7 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.dcastalia.localappupdate.DownloadApk
 import com.neolife.devfine.core.network.RequestHandler
+import com.neolife.devfine.di.core.SharedPrefManager
 import com.neolife.devfine.ui.pages.MainScreen
 import com.neolife.devfine.ui.theme.DevfineTheme
 import kotlinx.coroutines.launch
@@ -24,6 +25,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         lifecycleScope.launch {
+            if (SharedPrefManager().containsRefreshToken())
+                RequestHandler.refreshAccessToken(SharedPrefManager().getRefreshToken()!!)
             val url = RequestHandler.getUpdateInfoIfAvailable()
             if(url != null) {
                 val dialogBuilder = AlertDialog.Builder(this@MainActivity)

@@ -3,6 +3,7 @@ package com.neolife.devfine.ui.navigation
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -22,7 +23,7 @@ import com.neolife.devfine.ui.pages.SettingsScreen
 import com.neolife.devfine.ui.pages.ThemeScreen
 
 @Composable
-fun HomeNavHost(
+fun HomeNavHost(modifier: Modifier = Modifier,
                 startDestination: String,
                 navController: NavHostController) {
     NavHost(

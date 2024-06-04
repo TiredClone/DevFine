@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -68,7 +69,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
         }
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(text = "") },
+            TopAppBar(title = { Text(text = "")},
                 navigationIcon = {
                     IconButton(onClick = { navController.navigate(Screen.SettingsPage.route) }) {
                         Icon(
@@ -78,7 +79,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
                         )
                     }
                 })
-        }
+        }, contentWindowInsets = WindowInsets(0.dp)
     ) { innerPadding ->
         Column(
             modifier = Modifier
