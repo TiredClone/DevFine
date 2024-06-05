@@ -2,6 +2,9 @@ package com.neolife.devfine.core.network
 
 import com.neolife.devfine.core.network.requests.LoginRequest
 import com.neolife.devfine.core.network.requests.RefreshTokenRequest
+import com.neolife.devfine.core.network.responses.Comment
+import com.neolife.devfine.core.network.responses.CommentCreate
+import com.neolife.devfine.core.network.responses.Like
 import com.neolife.devfine.core.network.responses.LoginResponse
 import com.neolife.devfine.core.network.responses.Post
 import com.neolife.devfine.core.network.responses.PostCreate
@@ -9,6 +12,7 @@ import com.neolife.devfine.core.network.responses.PostView
 import com.neolife.devfine.core.network.responses.RefreshTokenResponse
 import com.neolife.devfine.core.network.responses.ReleaseResponse
 import com.neolife.devfine.core.network.responses.UserInfo
+import com.neolife.devfine.core.network.responses.Vote
 import com.neolife.devfine.di.core.AppInfoManager
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -156,7 +160,7 @@ object RequestHandler {
         }
     }
 
-    suspend fun getAllPosts(): MutableList<Post> {
+    suspend fun getAllPosts(): MutableList<PostView> {
         val req = client.get {
             url {
                 protocol = PROTOCOL
@@ -165,7 +169,7 @@ object RequestHandler {
             }
         }
 
-        val res: MutableList<Post> = req.body()
+        val res: MutableList<PostView> = req.body()
 
         return res
     }
@@ -261,5 +265,58 @@ object RequestHandler {
         }
     }
 
+    suspend fun createComment(postId: Int, parentComment: Int, content: String): Int {
+        val req = client.post {
+            headers{
+                append("Authorization", "Bearer $accessToken")
+            }
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/comments/create")
+            }
+            setBody(CommentCreate(postId, parentComment, content))
+            contentType(ContentType.Application.Json)
+        }
+
+        val res: Comment = req.body()
+        return res.id
+    }
+
+    suspend fun getComment(postId: Int, parentComment: Int, content: String): Int {
+        val req = client.get {
+            headers{
+                append("Authorization", "Bearer $accessToken")
+            }
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/comments/create")
+            }
+            setBody(CommentCreate(postId, parentComment, content))
+            contentType(ContentType.Application.Json)
+        }
+
+        val res: Comment = req.body()
+        return res.id
+    }
+
+    suspend fun setLike(postId: Int, like: Int): Int {
+        val req = client.post {
+            headers{
+                append("Authorization", "Bearer $accessToken")
+            }
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/posts/like")
+            }
+            setBody(Like(postId, like))
+            contentType(ContentType.Application.Json)
+        }
+
+        val res: Vote = req.body()
+        return res.id
+    }
 
 }

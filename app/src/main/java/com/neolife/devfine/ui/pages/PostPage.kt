@@ -3,6 +3,7 @@ package com.neolife.devfine.ui.pages
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -11,6 +12,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -21,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -32,7 +35,12 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PostScreen(navController: NavController, viewModel: PostScreenViewModel, id: Int) {
+fun PostScreen(
+    navController: NavController,
+    viewModel: PostScreenViewModel,
+    viewModelComm: CommentScreenViewModel,
+    id: Int
+) {
     viewModel.postLoading(id)
     val color = when {
         isSystemInDarkTheme() -> Color.White
@@ -50,17 +58,34 @@ fun PostScreen(navController: NavController, viewModel: PostScreenViewModel, id:
                 )
             }
         })
-    }){ innerPadding ->
+    }, bottomBar = {
+        OutlinedTextField(
+            value = viewModelComm.comment.value,
+            onValueChange = { viewModelComm.comment.value = it },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 15.dp),
+            placeholder = { Text("Комментарий", color = Color.Gray) })
+
+    }) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
-        ){
+        ) {
             if (viewModel.isLoading.value) {
                 CircularProgressIndicator()
             } else {
-                Text(text = viewModel.post.value!!.post.title, color = color, fontSize = 23.sp, modifier = Modifier.padding(16.dp), fontWeight = FontWeight.Bold )
-                Text(text = viewModel.post.value!!.post.content, color = color, modifier = Modifier.padding(16.dp))
+                Text(
+                    text = viewModel.post.value!!.post.title,
+                    color = color,
+                    fontSize = 23.sp,
+                    modifier = Modifier.padding(16.dp),
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = viewModel.post.value!!.post.content,
+                    color = color,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
         }
     }
@@ -75,11 +100,15 @@ class PostScreenViewModel : ViewModel() {
     val dialogTitle = mutableStateOf("Error")
     val dialogCaption = mutableStateOf("Error")
 
-    fun postLoading(id: Int){
+    fun postLoading(id: Int) {
         viewModelScope.launch {
             isLoading.value = true
             post.value = RequestHandler.getPostById(id)
             isLoading.value = false
         }
     }
+}
+
+class CommentScreenViewModel : ViewModel() {
+    val comment = mutableStateOf(TextFieldValue())
 }

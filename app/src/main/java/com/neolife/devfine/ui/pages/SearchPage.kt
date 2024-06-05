@@ -39,7 +39,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.neolife.devfine.R
 import com.neolife.devfine.core.network.RequestHandler
-import com.neolife.devfine.core.network.responses.Post
+import com.neolife.devfine.core.network.responses.PostView
 import com.neolife.devfine.ui.navigation.Screen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -91,8 +91,8 @@ fun SearchScreen(
             } else {
                 LazyColumn {
                     items(if (viewModel.query.value.text.isNotEmpty()) posts.toList().filter {
-                        it.title.lowercase().contains(viewModel.query.value.text.lowercase())
-                    } else posts.toList(), key = { it.id }) { data ->
+                        it.post.title.lowercase().contains(viewModel.query.value.text.lowercase())
+                    } else posts.toList(), key = { it.post.id }) { data ->
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -102,7 +102,7 @@ fun SearchScreen(
                                     navController.navigate(
                                         Screen.PostPage.route.replace(
                                             "{post_id}",
-                                            data.id.toString()
+                                            data.post.id.toString()
                                         )
                                     )
                                 }
@@ -113,12 +113,12 @@ fun SearchScreen(
                                     .padding(16.dp)
                             ) {
                                 Text(
-                                    text = data.title,
+                                    text = data.post.title,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 23.sp,
                                     color = color
                                 )
-                                Text(text = data.content, color = color)
+                                Text(text = data.post.content, color = color)
                             }
                         }
                     }
@@ -134,7 +134,7 @@ fun SearchScreen(
 }
 
 class SearchViewModel : ViewModel() {
-    var posts = MutableStateFlow<MutableList<Post>>(mutableListOf())
+    var posts = MutableStateFlow<MutableList<PostView>>(mutableListOf())
     val isLoading = mutableStateOf(true)
     val query = mutableStateOf(TextFieldValue(""))
 

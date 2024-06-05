@@ -6,14 +6,20 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -33,7 +39,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.neolife.devfine.R
 import com.neolife.devfine.core.network.RequestHandler
-import com.neolife.devfine.core.network.responses.Post
+import com.neolife.devfine.core.network.responses.PostView
+import com.neolife.devfine.di.core.SharedPrefManager
 import com.neolife.devfine.ui.navigation.Screen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -80,7 +87,7 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
                                     navController.navigate(
                                         Screen.PostPage.route.replace(
                                             "{post_id}",
-                                            data.id.toString()
+                                            data.post.id.toString()
                                         )
                                     )
                                 }
@@ -91,12 +98,28 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
                                     .padding(16.dp)
                             ) {
                                 Text(
-                                    text = data.title,
+                                    text = data.post.title,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 23.sp,
                                     color = color,
                                 )
-                                Text(text = data.content, color = color, fontSize = 18.sp, modifier = Modifier.padding(top = 16.dp))
+                                Text(text = data.post.content, color = color, fontSize = 18.sp, modifier = Modifier.padding(top = 16.dp))
+                                Row(
+                                    horizontalArrangement = Arrangement.Start,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(text=data.votes.count().toString(), fontSize = 24.sp)
+                                    IconButton(onClick = { viewModel.addLike(data.post.id) }) {
+                                        Icon(
+                                            imageVector = (if (data.votes.any { it.user?.username == SharedPrefManager().getUsername() }) {
+                                                Icons.Filled.ThumbUp
+                                            } else {
+                                                Icons.Outlined.ThumbUp
+                                            }), contentDescription = null
+                                        )
+                                    }
+                                }
+
                             }
                         }
                     }
@@ -112,7 +135,7 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
 }
 
 class HomeViewModel : ViewModel() {
-    var posts = MutableStateFlow<MutableList<Post>>(mutableListOf())
+    var posts = MutableStateFlow<MutableList<PostView>>(mutableListOf())
     val isLoading = mutableStateOf(true)
 
     init {
@@ -125,6 +148,25 @@ class HomeViewModel : ViewModel() {
             posts.value = mutableListOf()
             posts.value = RequestHandler.getAllPosts()
             isLoading.value = false
+        }
+    }
+
+
+    fun updateAllPosts() {
+        viewModelScope.launch {
+            posts.value = RequestHandler.getAllPosts()
+        }
+    }
+
+    fun addLike(postId: Int){
+        viewModelScope.launch {
+            val findPostInList = posts.value.find { it.post.id == postId }
+            val findUserInVotes = findPostInList!!.votes.any { it.user?.username == SharedPrefManager().getUsername()  }
+            var likeStatus = 1
+            if (findUserInVotes)
+                likeStatus = 0
+            RequestHandler.setLike(postId, likeStatus)
+            updateAllPosts()
         }
     }
 }

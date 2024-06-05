@@ -51,7 +51,7 @@ fun HomeNavHost(modifier: Modifier = Modifier,
         composable(route = Screen.PostPage.route, arguments = listOf(navArgument("post_id") { type = NavType.IntType })) {
                 backStackEntry ->
             backStackEntry.arguments?.getInt("post_id")
-                ?.let { PostScreen(navController = navController, viewModel = viewModel(), id = it) }
+                ?.let { PostScreen(navController = navController, viewModel = viewModel(), id = it, viewModelComm = viewModel()) }
         }
 
         composable(route = Screen.SearchPage.route){
