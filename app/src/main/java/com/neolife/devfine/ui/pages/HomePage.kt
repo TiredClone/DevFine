@@ -20,15 +20,20 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -60,75 +65,101 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
     }
     val posts by viewModel.posts.collectAsStateWithLifecycle()
 
+    val pullRefreshState = rememberPullToRefreshState()
+    if (pullRefreshState.isRefreshing) {
+        LaunchedEffect(true) {
+            viewModel.getAllPosts()
+            pullRefreshState.endRefresh()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(text = "Лента", fontWeight = FontWeight.Bold, color = color) })
         }, contentWindowInsets = WindowInsets(0.dp)
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+                .padding(innerPadding)
+                .nestedScroll(pullRefreshState.nestedScrollConnection)
         )
         {
             if (viewModel.isLoading.value) {
-                CircularProgressIndicator()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             } else {
-                LazyColumn {
-                    items(posts.toList()) { data ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 16.dp)
-                                .background(colorBox)
-                                .clickable {
-                                    navController.navigate(
-                                        Screen.PostPage.route.replace(
-                                            "{post_id}",
-                                            data.post.id.toString()
-                                        )
-                                    )
-                                }
-                        ) {
-                            Column(
+                LazyColumn(
+                ) {
+                    if (!viewModel.isLoading.value) {
+                        items(posts.toList().asReversed()) { data ->
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                Text(
-                                    text = data.post.title,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 23.sp,
-                                    color = color,
-                                )
-                                Text(text = data.post.content, color = color, fontSize = 18.sp, modifier = Modifier.padding(top = 16.dp))
-                                Row(
-                                    horizontalArrangement = Arrangement.Start,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(text=data.votes.count().toString(), fontSize = 24.sp)
-                                    IconButton(onClick = { viewModel.addLike(data.post.id) }) {
-                                        Icon(
-                                            imageVector = (if (data.votes.any { it.user?.username == SharedPrefManager().getUsername() }) {
-                                                Icons.Filled.ThumbUp
-                                            } else {
-                                                Icons.Outlined.ThumbUp
-                                            }), contentDescription = null
+                                    .padding(top = 16.dp)
+                                    .background(colorBox)
+                                    .clickable {
+                                        navController.navigate(
+                                            Screen.PostPage.route.replace(
+                                                "{post_id}",
+                                                data.post.id.toString()
+                                            )
                                         )
                                     }
-                                }
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                ) {
+                                    Text(
+                                        text = data.post.title,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 23.sp,
+                                        color = color,
+                                    )
+                                    Text(
+                                        text = data.post.content,
+                                        color = color,
+                                        fontSize = 18.sp,
+                                        modifier = Modifier.padding(top = 16.dp)
+                                    )
+                                    Row(
+                                        horizontalArrangement = Arrangement.Start,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Text(text = data.votes.count().toString(), fontSize = 24.sp)
+                                        IconButton(onClick = { viewModel.addLike(data.post.id) }) {
+                                            Icon(
+                                                imageVector = (if (data.votes.any { it.user?.username == SharedPrefManager().getUsername() }) {
+                                                    Icons.Filled.ThumbUp
+                                                } else {
+                                                    Icons.Outlined.ThumbUp
+                                                }), contentDescription = null
+                                            )
+                                        }
+                                    }
 
+                                }
                             }
                         }
                     }
                     item {
-                        if (posts.isEmpty())
+                        if (!viewModel.isLoading.value && posts.isEmpty())
                             Text(text = "Записи отсутвуют")
                     }
                 }
             }
+            PullToRefreshContainer(
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         }
     }
 

@@ -188,6 +188,20 @@ object RequestHandler {
         return res
     }
 
+    suspend fun getPostByAuthorId(id: Int): MutableList<PostView> {
+        val req = client.get {
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/posts/author/$id")
+            }
+        }
+
+        val res: MutableList<PostView> = req.body()
+
+        return res
+    }
+
     suspend fun createPost(title: String, content: String): Int {
         val req = client.post {
             headers{
