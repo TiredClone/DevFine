@@ -10,10 +10,10 @@ android {
 
     defaultConfig {
         applicationId = "com.neolife.devfine"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "1.10"
+        versionName = "1.12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -59,6 +59,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.markdown)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.github.piashsarker.androidAppUpdateLibrary)
     implementation(libs.coil.kt)

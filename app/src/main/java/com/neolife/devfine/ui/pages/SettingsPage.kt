@@ -1,6 +1,7 @@
 package com.neolife.devfine.ui.pages
 
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -28,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,26 +38,37 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.neolife.devfine.core.network.RequestHandler
 import com.neolife.devfine.di.core.SharedPrefManager
 import com.neolife.devfine.ui.navigation.Screen
+import kotlinx.coroutines.launch
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController, viewModel: ProfileViewModel) {
+fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
     val color = when {
         isSystemInDarkTheme() -> Color.White
         else -> Color.Black
     }
     Scaffold(topBar = {
-        TopAppBar(title = { Text(text = "Настройки", fontWeight = FontWeight.Bold, color = color) })
-    },  contentWindowInsets = WindowInsets(0.dp)) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-        ) {
+        TopAppBar(title = {
+            Text(text = "Настройки",
+            fontWeight = FontWeight.Bold,
+                color = color) })
+    },  contentWindowInsets = WindowInsets(0.dp))
+    {innerPadding ->
+
+        if (viewModel.goToAuth.value)
+            navController.navigate(Screen.AuthPage.route)
+
+       LazyColumn(
+           modifier = Modifier.fillMaxSize().padding(innerPadding)
+       ) {
             item {
                 if (!SharedPrefManager().containsRefreshToken()) {
                     ListItem(headlineContent = {
@@ -80,7 +93,7 @@ fun SettingsScreen(navController: NavController, viewModel: ProfileViewModel) {
                                 navController.navigate(Screen.AuthPage.route)
                             })
                 } else {
-                    if (viewModel.isLoading.value) {
+                    if (!viewModel.isLoading.value) {
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -114,7 +127,6 @@ fun SettingsScreen(navController: NavController, viewModel: ProfileViewModel) {
                             }
                         }
                     } else {
-                        viewModel.loadingUserData(navController)
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -128,7 +140,7 @@ fun SettingsScreen(navController: NavController, viewModel: ProfileViewModel) {
             }
             item {
                 if (SharedPrefManager().containsRefreshToken()) {
-                    if (viewModel.isLoading.value) {
+                    if (!viewModel.isLoading.value) {
                         ListItem(headlineContent = {
                             Text(
                                 text = "Выйти из аккаунта",
@@ -149,6 +161,7 @@ fun SettingsScreen(navController: NavController, viewModel: ProfileViewModel) {
                                 .fillMaxWidth()
                                 .clickable {
                                     SharedPrefManager().removeRefreshToken()
+                                    navController.navigate(Screen.SettingsPage.route)
                                 })
                     }
                 }
@@ -206,8 +219,44 @@ fun SettingsScreen(navController: NavController, viewModel: ProfileViewModel) {
                         .fillMaxWidth()
                         .clickable {
                             navController.navigate(Screen.AboutPage.route)
-                        }
+                       }
                 )
+           }
+       }
+   }
+}
+
+
+class SettingsViewModel : ViewModel() {
+    val isLoading = mutableStateOf(false)
+    val username = mutableStateOf("")
+    val avatar = mutableStateOf("")
+    val goToAuth = mutableStateOf(false)
+
+    init {
+        loadingUserData()
+    }
+
+    private fun loadingUserData() {
+
+        viewModelScope.launch {
+            if (SharedPrefManager().containsRefreshToken()) {
+                isLoading.value = true
+
+                val infoReq =
+                    RequestHandler.getProfileByUsername(
+                        SharedPrefManager().getUsername().toString()
+                    )
+
+                if (infoReq == null) {
+                    goToAuth.value = true
+                } else {
+                    username.value = infoReq.username
+                    avatar.value =
+                        "https://devfine.tiredclone.me/api/users/images?filename=${infoReq.profilePicture}"
+
+                    isLoading.value = false
+                }
             }
         }
     }

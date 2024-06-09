@@ -49,7 +49,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -59,9 +61,11 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.neolife.devfine.R
 import com.neolife.devfine.core.network.RequestHandler
+import com.neolife.devfine.core.network.Utils
 import com.neolife.devfine.core.network.responses.PostView
 import com.neolife.devfine.di.core.SharedPrefManager
 import com.neolife.devfine.ui.navigation.Screen
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -99,7 +103,12 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
         topBar = {
             TopAppBar(title = { Text(text = "") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigate(Screen.SettingsPage.route) }) {
+                    IconButton(onClick = { navController.navigate(Screen.SettingsPage.route){
+                        popUpTo(navController.graph.id)
+                        {
+                            inclusive = true
+                        }
+                    } }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -130,6 +139,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
 
 
             LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             )
             {
@@ -174,6 +184,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
                 }
                 if (!viewModel.isLoading.value) {
                     items(posts.toList().asReversed()) { data ->
+                        val content = Utils.parseMarkdown(data.post.content)
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -199,11 +210,22 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
                                     fontSize = 23.sp,
                                     color = color,
                                 )
-                                Text(
-                                    text = data.post.content,
-                                    color = color,
-                                    fontSize = 18.sp,
-                                    modifier = Modifier.padding(top = 16.dp)
+                                MarkdownText(
+                                    modifier = Modifier.padding(top = 16.dp),
+                                    markdown = content,
+                                    onClick = {
+                                        navController.navigate(
+                                            Screen.PostPage.route.replace(
+                                                "{post_id}",
+                                                data.post.id.toString()
+                                            )
+                                        )
+                                    },
+                                    style = TextStyle(
+                                        color = color,
+                                        fontSize = 18.sp,
+                                        textAlign = TextAlign.Justify,
+                                    ),
                                 )
                                 Row(
                                     horizontalArrangement = Arrangement.Start,
@@ -258,12 +280,6 @@ class ProfileViewModel : ViewModel() {
 
         viewModelScope.launch {
             isLoading.value = true
-            val req =
-                RequestHandler.refreshAccessToken(SharedPrefManager().getRefreshToken().toString())
-
-            if (req == "" || req == null) {
-                navController.navigate(Screen.AuthPage.route)
-            }
 
             val infoReq =
                 RequestHandler.getProfileByUsername(SharedPrefManager().getUsername().toString())

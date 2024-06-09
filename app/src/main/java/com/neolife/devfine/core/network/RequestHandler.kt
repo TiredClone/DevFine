@@ -279,7 +279,7 @@ object RequestHandler {
         }
     }
 
-    suspend fun createComment(postId: Int, parentComment: Int, content: String): Int {
+    suspend fun createComment(postId: Int, parentComment: Int?, content: String): Int {
         val req = client.post {
             headers{
                 append("Authorization", "Bearer $accessToken")

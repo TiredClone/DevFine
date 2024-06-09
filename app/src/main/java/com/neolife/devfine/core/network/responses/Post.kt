@@ -12,10 +12,10 @@ data class Post(val id: Int, val title: String, val content: String, val author:
 data class PostCreate(val title: String, val content: String)
 
 @Serializable
-data class CommentCreate(val postId: Int, val parentComment: Int, val content: String)
+data class CommentCreate(val postId: Int, val parentComment: Int?, val content: String)
 
 @Serializable
-data class Comment(val id: Int, val parentComment: String, val author: UserInfo?, val content: String, val createdAt: String?, val updatedAt: String? )
+data class Comment(val id: Int, val parentComment: String?, val author: UserInfo?, val content: String, val createdAt: String?, val updatedAt: String? )
 
 @Serializable
 data class Vote(val id: Int, val user: UserInfo?, val vote: Int)

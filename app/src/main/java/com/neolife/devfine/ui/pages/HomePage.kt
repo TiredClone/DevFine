@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbUp
@@ -32,21 +34,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.neolife.devfine.R
 import com.neolife.devfine.core.network.RequestHandler
+import com.neolife.devfine.core.network.Utils
 import com.neolife.devfine.core.network.responses.PostView
 import com.neolife.devfine.di.core.SharedPrefManager
 import com.neolife.devfine.ui.navigation.Screen
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -99,6 +108,7 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
                 ) {
                     if (!viewModel.isLoading.value) {
                         items(posts.toList().asReversed()) { data ->
+                            val content = Utils.parseMarkdown(data.post.content)
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -118,17 +128,65 @@ fun HomeScreen(viewModel: HomeViewModel, navController: NavController) {
                                         .fillMaxWidth()
                                         .padding(16.dp)
                                 ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(colorBox)
+                                    ) {
+                                        AsyncImage(
+                                            model = "https://devfine.tiredclone.me/api/users/images?filename=${data.post.author?.profilePicture}",
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .clip(CircleShape)
+                                                .size(64.dp)
+
+                                        )
+                                        Column(
+                                            modifier = Modifier
+                                                .padding(start = 16.dp)
+                                                .background(colorBox)
+                                                .fillMaxSize(),
+                                            verticalArrangement = Arrangement.Bottom,
+                                            horizontalAlignment = Alignment.Start
+                                        ) {
+                                            data.post.author?.let {
+                                                Text(
+                                                    modifier = Modifier.padding(top = 4.dp),
+                                                    text = it.username,
+                                                    fontSize = 20.sp
+                                                )
+                                                Text(
+                                                    modifier = Modifier.padding(top = 4.dp),
+                                                    text = Utils.TimeOrDate(data.post.createdAt.toString()),
+                                                    fontSize = 20.sp
+                                                )
+                                            }
+                                        }
+                                    }
                                     Text(
                                         text = data.post.title,
+                                        modifier = Modifier.padding(top = 16.dp),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 23.sp,
                                         color = color,
                                     )
-                                    Text(
-                                        text = data.post.content,
-                                        color = color,
-                                        fontSize = 18.sp,
-                                        modifier = Modifier.padding(top = 16.dp)
+                                    MarkdownText(
+                                        modifier = Modifier.padding(top = 16.dp),
+                                        markdown = content,
+                                        onClick = {
+                                            navController.navigate(
+                                                Screen.PostPage.route.replace(
+                                                    "{post_id}",
+                                                    data.post.id.toString()
+                                                )
+                                            )
+                                        },
+                                        style = TextStyle(
+                                            color = color,
+                                            fontSize = 18.sp,
+                                            textAlign = TextAlign.Justify,
+                                        ),
                                     )
                                     Row(
                                         horizontalArrangement = Arrangement.Start,
