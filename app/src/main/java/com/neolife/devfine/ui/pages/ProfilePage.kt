@@ -72,7 +72,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
-    viewModel.loadingUserData(navController)
+    if (viewModel.goToAuth.value)
+        navController.navigate(Screen.AuthPage.route)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val posts by viewModel.posts.collectAsStateWithLifecycle()
@@ -95,7 +96,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
     val pullRefreshState = rememberPullToRefreshState()
     if (pullRefreshState.isRefreshing) {
         LaunchedEffect(true) {
-            viewModel.loadingUserData(navController)
+            viewModel.loadingUserData()
             pullRefreshState.endRefresh()
         }
     }
@@ -271,10 +272,15 @@ class ProfileViewModel : ViewModel() {
     val avatar = mutableStateOf("")
     val isLoading = mutableStateOf(false)
     val id = mutableIntStateOf(0)
+    val goToAuth = mutableStateOf(false)
 
-    fun loadingUserData(navController: NavController) {
+    init {
+        loadingUserData()
+    }
+
+    fun loadingUserData() {
         if (!SharedPrefManager().containsRefreshToken()) {
-            navController.navigate(Screen.AuthPage.route)
+            goToAuth.value = true
             return
         }
 
@@ -285,7 +291,7 @@ class ProfileViewModel : ViewModel() {
                 RequestHandler.getProfileByUsername(SharedPrefManager().getUsername().toString())
 
             if (infoReq == null) {
-                navController.navigate(Screen.AuthPage.route)
+                goToAuth.value = true
             } else {
                 username.value = infoReq.username
                 avatar.value =

@@ -14,6 +14,7 @@ import com.neolife.devfine.core.network.responses.ReleaseResponse
 import com.neolife.devfine.core.network.responses.UserInfo
 import com.neolife.devfine.core.network.responses.Vote
 import com.neolife.devfine.di.core.AppInfoManager
+import com.neolife.devfine.di.core.SharedPrefManager
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
@@ -43,7 +44,14 @@ object RequestHandler {
 
     private var accessToken = ""
 
+    var role = "USER"
+
     private val PROTOCOL = URLProtocol.HTTPS //  DO NOT FORGET TO CHANGE IF PROD!
+
+    fun removeAccessToken() {
+        accessToken = ""
+    }
+
 
     suspend fun login(username: String, password: String): LoginResponse? {
 
@@ -60,7 +68,13 @@ object RequestHandler {
             }
             val res: LoginResponse = req.body()
 
+            SharedPrefManager().saveUsername(res.username)
+
             this.accessToken = res.accessToken
+
+            val user = SharedPrefManager().getUsername()?.let { getProfileByUsername(it) }
+
+            role = user?.role ?: "USER"
 
             return res
         }
@@ -109,6 +123,10 @@ object RequestHandler {
             val res: RefreshTokenResponse = req.body()
 
             accessToken = res.token
+
+            val user = SharedPrefManager().getUsername()?.let { getProfileByUsername(it) }
+
+            role = user?.role ?: "USER"
 
             return res.token
         }
@@ -313,6 +331,21 @@ object RequestHandler {
 
         val res: Comment = req.body()
         return res.id
+    }
+
+    suspend fun removeComment(commentId: Int): Boolean {
+        val req = client.delete {
+            headers{
+                append("Authorization", "Bearer $accessToken")
+            }
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/comments/$commentId")
+            }
+            contentType(ContentType.Application.Json)
+            }
+        return true
     }
 
     suspend fun setLike(postId: Int, like: Int): Int {
