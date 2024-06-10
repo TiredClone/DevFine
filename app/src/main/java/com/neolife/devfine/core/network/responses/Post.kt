@@ -15,6 +15,9 @@ data class PostCreate(val title: String, val content: String)
 data class CommentCreate(val postId: Int, val parentComment: Int?, val content: String)
 
 @Serializable
+data class EditComment(val commentId: Int, val content: String)
+
+@Serializable
 data class Comment(val id: Int, val parentComment: String?, val author: UserInfo?, val content: String, val createdAt: String?, val updatedAt: String? )
 
 @Serializable

@@ -16,9 +16,15 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,7 +49,6 @@ import com.neolife.devfine.core.network.RequestHandler
 import com.neolife.devfine.core.network.Utils
 import com.neolife.devfine.core.viewmodel.PostScreenViewModel
 import com.neolife.devfine.di.core.SharedPrefManager
-import com.neolife.devfine.ui.navigation.Screen
 import dev.jeziellago.compose.markdowntext.MarkdownText
 
 @Composable
@@ -55,6 +61,7 @@ fun PostComponent(
         isSystemInDarkTheme() -> Color.White
         else -> Color.Black
     }
+
     Column(
         modifier = Modifier.padding(innerPadding),
         horizontalAlignment = Alignment.Start,
@@ -92,13 +99,15 @@ fun PostComponent(
                                     Text(
                                         modifier = Modifier.padding(top = 4.dp),
                                         text = it1,
-                                        fontSize = 20.sp
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = color
                                     )
                                 }
                                 Text(
                                     modifier = Modifier.padding(top = 4.dp),
                                     text = Utils.TimeOrDate(viewModel.post.value?.post?.createdAt.toString()),
-                                    fontSize = 20.sp
+                                    fontSize = 14.sp
                                 )
                             }
                         }
@@ -122,8 +131,32 @@ fun PostComponent(
                         ),
                     )
                 }
+                item(){
+                    Row(
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 16.dp, bottom = 16.dp )
+                    ) {
+                        Text(text = viewModel.post.value?.votes?.count().toString(), fontSize = 20.sp)
+                        IconButton(onClick = { viewModel.addLike(viewModel.post.value?.post?.id!!) }) {
+                            Icon(
+                                imageVector = (if (viewModel.post.value?.votes!!.any { it.user?.username == SharedPrefManager().getUsername() }) {
+                                    Icons.Filled.ThumbUp
+                                } else {
+                                    Icons.Outlined.ThumbUp
+                                }), contentDescription = null
+                            )
+                        }
+                    }
+                }
                 item {
-                    Text(text = "Комментарии")
+                    HorizontalDivider()
+                }
+                item {
+                    Text(text = "Комментарии", modifier = Modifier.padding(16.dp), fontSize = 18.sp, color = color, fontWeight = FontWeight.Bold)
+                }
+                item {
+                    HorizontalDivider()
                 }
                 viewModel.post.value?.comments?.let {
                     items(it.asReversed()) { data ->
@@ -142,9 +175,9 @@ fun PostComponent(
                                 ) {
                                     DropdownMenuItem(
                                         onClick = {
-                                            navController.navigate(
-                                                Screen.CreatePostPage.route.replace("{post_id}",
-                                                   viewModel.postId.toString()))
+                                            viewModel.isEditing.value = true
+                                            viewModel.commentId.intValue = data.id
+                                            viewModel.comment.value = TextFieldValue(data.content)
                                             expanded = false
                                         },
                                         text = { Text(text = "Изменить") })
@@ -168,9 +201,8 @@ fun PostComponent(
                             headlineContent = {
                                 Text(
                                     text = Utils.TimeOrDate(data.createdAt.toString()),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = color
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Medium
                                 )
                             },
                             supportingContent = {
@@ -198,6 +230,8 @@ fun PostComponent(
                                 .clickable {
                                     expanded = true
                                 })
+
+                            HorizontalDivider(Modifier.padding(5.dp))
                     }
                 }
             }
@@ -211,5 +245,19 @@ fun PostComponent(
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()
+        }
+
+    if (viewModel.isEditing.value)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+                .clickable {
+                           viewModel.isEditing.value = false
+                            viewModel.comment.value = TextFieldValue("")
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text="Нажми на меня чтобы отменить редактирование")
         }
 }

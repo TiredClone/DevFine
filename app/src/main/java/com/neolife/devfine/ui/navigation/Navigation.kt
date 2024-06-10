@@ -13,6 +13,7 @@ import androidx.navigation.navArgument
 import com.neolife.devfine.ui.pages.AboutScreen
 import com.neolife.devfine.ui.pages.AuthScreen
 import com.neolife.devfine.ui.pages.CreatePostScreen
+import com.neolife.devfine.ui.pages.EditPostScreen
 import com.neolife.devfine.ui.pages.HomeScreen
 import com.neolife.devfine.ui.pages.MainScreen
 import com.neolife.devfine.ui.pages.PostScreen
@@ -51,7 +52,13 @@ fun HomeNavHost(modifier: Modifier = Modifier,
         composable(route = Screen.PostPage.route, arguments = listOf(navArgument("post_id") { type = NavType.IntType })) {
                 backStackEntry ->
             backStackEntry.arguments?.getInt("post_id")
-                ?.let { PostScreen(navController = navController, viewModel = viewModel(), id = it, viewModelCreatePost = viewModel()) }
+                ?.let { PostScreen(navController = navController, viewModel = viewModel(), id = it) }
+        }
+
+        composable(route = Screen.EditPostPage.route, arguments = listOf(navArgument("post_id") { type = NavType.IntType })) {
+                backStackEntry ->
+            backStackEntry.arguments?.getInt("post_id")
+                ?.let { EditPostScreen(navController = navController, viewModel = viewModel(), postId = it) }
         }
 
         composable(route = Screen.SearchPage.route){

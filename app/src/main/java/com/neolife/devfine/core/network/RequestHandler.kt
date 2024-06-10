@@ -4,6 +4,7 @@ import com.neolife.devfine.core.network.requests.LoginRequest
 import com.neolife.devfine.core.network.requests.RefreshTokenRequest
 import com.neolife.devfine.core.network.responses.Comment
 import com.neolife.devfine.core.network.responses.CommentCreate
+import com.neolife.devfine.core.network.responses.EditComment
 import com.neolife.devfine.core.network.responses.Like
 import com.neolife.devfine.core.network.responses.LoginResponse
 import com.neolife.devfine.core.network.responses.Post
@@ -220,7 +221,7 @@ object RequestHandler {
         return res
     }
 
-    suspend fun createPost(title: String, content: String): Int {
+    suspend fun createPost(title: String, content: String): Int? {
         val req = client.post {
             headers{
                 append("Authorization", "Bearer $accessToken")
@@ -239,7 +240,7 @@ object RequestHandler {
     }
 
 
-    suspend fun editPost(id: Int, title: String, content: String): Int {
+    suspend fun editPost(id: Int, title: String, content: String): Int? {
         val req = client.put {
             headers{
                 append("Authorization", "Bearer $accessToken")
@@ -256,7 +257,24 @@ object RequestHandler {
         return res.id
     }
 
-    suspend fun removePost(id: Int): Boolean {
+    suspend fun editComment(id: Int, content: String): Int {
+        val req = client.put {
+            headers{
+                append("Authorization", "Bearer $accessToken")
+            }
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/comments/update")
+            }
+            setBody(EditComment(id, content))
+            contentType(ContentType.Application.Json)
+        }
+        val res: Comment = req.body()
+        return res.id
+    }
+
+    suspend fun removePost(Id: Int): Boolean {
         val req = client.delete {
             headers{
                 append("Authorization", "Bearer $accessToken")
@@ -264,13 +282,12 @@ object RequestHandler {
             url {
                 protocol = PROTOCOL
                 host = BASEURL
-                path("api/posts/$id")
+                path("api/posts/$Id")
             }
             contentType(ContentType.Application.Json)
         }
         return true
     }
-
     suspend fun changeAvatar(image: ByteArray?) {
         val req = client.post {
             headers{

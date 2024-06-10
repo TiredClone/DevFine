@@ -8,10 +8,10 @@ import kotlinx.serialization.json.Json
 
 object KtorInstance {
     private val client = HttpClient(OkHttp) {
-            install(ContentNegotiation) {
-                json(Json { ignoreUnknownKeys = true })
-            }
+        install(ContentNegotiation) {
+            json(Json { ignoreUnknownKeys = true; encodeDefaults = true })
         }
+    }
 
     public fun getHttpClient(): HttpClient = client
 }

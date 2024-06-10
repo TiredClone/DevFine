@@ -231,8 +231,9 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
                                 Row(
                                     horizontalArrangement = Arrangement.Start,
                                     verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(top = 16.dp)
                                 ) {
-                                    Text(text = data.votes.count().toString(), fontSize = 24.sp)
+                                    Text(text = data.votes.count().toString(), fontSize = 20.sp)
                                     IconButton(onClick = { viewModel.addLike(data.post.id) }) {
                                         Icon(
                                             imageVector = (if (data.votes.any { it.user?.username == SharedPrefManager().getUsername() }) {

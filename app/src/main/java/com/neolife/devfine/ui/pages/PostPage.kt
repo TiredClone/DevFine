@@ -35,7 +35,6 @@ import com.neolife.devfine.ui.navigation.Screen
 fun PostScreen(
     navController: NavController,
     viewModel: PostScreenViewModel,
-    viewModelCreatePost: CreatePostViewModel,
     id: Int
 ) {
     if (!viewModel.isDeleted.value)
@@ -64,12 +63,15 @@ fun PostScreen(
                     ) {
                         DropdownMenuItem(
                             onClick = {
-                                navController.navigate(Screen.CreatePostPage.route)
+                                navController.navigate(Screen.EditPostPage.route.replace(
+                                    "{post_id}",
+                                    viewModel.postId.intValue.toString()
+                                ))
                             },
                             text = { Text(text = "Изменить") })
                         DropdownMenuItem(
                             onClick = {
-                                viewModel.deletePost()
+                                viewModel.deletePost(viewModel.postId.intValue, navController)
                                 navController.navigate(Screen.HomePage.route)
                             },
                             text = { Text(text = "Удалить") })

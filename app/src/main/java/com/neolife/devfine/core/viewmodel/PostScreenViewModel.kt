@@ -6,8 +6,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import com.neolife.devfine.core.network.RequestHandler
 import com.neolife.devfine.core.network.responses.PostView
+import com.neolife.devfine.di.core.SharedPrefManager
+import com.neolife.devfine.ui.navigation.Screen
 import kotlinx.coroutines.launch
 
 class PostScreenViewModel : ViewModel() {
@@ -20,6 +23,8 @@ class PostScreenViewModel : ViewModel() {
     val expanded = mutableStateOf(false)
     val content = mutableStateOf("")
     val isDeleted = mutableStateOf(false)
+    val isEditing = mutableStateOf(false)
+    val commentId = mutableIntStateOf(0)
     val showFailedDialog = mutableStateOf(false)
     val dialogTitle = mutableStateOf("Error")
     val dialogCaption = mutableStateOf("Error")
@@ -41,19 +46,33 @@ class PostScreenViewModel : ViewModel() {
 
     fun addComment() {
         if (comment.value.text.isNotEmpty()) {
-            viewModelScope.launch {
-                isUploadingComment.value = true
-                post.value?.post?.let {
-                    RequestHandler.createComment(
-                        it.id,
-                        null,
-                        comment.value.text
-                    )
+            if (!isEditing.value)
+                viewModelScope.launch {
+                    isUploadingComment.value = true
+                    post.value?.post?.let {
+                        RequestHandler.createComment(
+                            it.id,
+                            null,
+                            comment.value.text
+                        )
+                    }
+                    isUploadingComment.value = false
+                    comment.value = TextFieldValue("")
+                    postLoading(postId.intValue)
                 }
-                isUploadingComment.value = false
-                comment.value = TextFieldValue("")
-                postLoading(postId.intValue)
-            }
+            else
+                viewModelScope.launch {
+                    val tmpComment = comment.value.text
+                    isEditing.value = false
+                    isUploadingComment.value = true
+                    RequestHandler.editComment(
+                        commentId.intValue,
+                        tmpComment
+                    )
+                    isUploadingComment.value = false
+                    comment.value = TextFieldValue("")
+                    postLoading(postId.intValue)
+                }
         }
     }
 
@@ -66,12 +85,35 @@ class PostScreenViewModel : ViewModel() {
         }
     }
 
-    fun deletePost() {
+    fun deletePost(postId: Int, navController: NavController) {
         viewModelScope.launch {
-            post.value?.post?.let {
-                RequestHandler.removePost(it.id)
-                isDeleted.value = true
-            }
+            isLoading.value = true
+            isDeleted.value = true
+            val req = RequestHandler.removePost(postId)
+            navController.navigate(Screen.HomePage.route)
+        }
+
+    }
+
+    fun updatePost(navController: NavController) {
+        viewModelScope.launch {
+            isLoading.value = true
+            val req = RequestHandler.editPost(postId.intValue, title.value, content.value)
+        }
+        navController.navigate(Screen.PostPage.route)
+        isLoading.value = false
+
+    }
+
+    fun addLike(postId: Int){
+        viewModelScope.launch {
+            val findUserInVotes = post.value?.votes?.any { it.user?.username == SharedPrefManager().getUsername()  }
+            var likeStatus = 1
+            if (findUserInVotes == true)
+                likeStatus = 0
+            RequestHandler.setLike(postId, likeStatus)
+            refreshPost()
         }
     }
+
 }

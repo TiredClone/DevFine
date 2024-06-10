@@ -32,7 +32,8 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreatePostScreen(navController: NavController, viewModel: CreatePostViewModel) {
+fun EditPostScreen(postId: Int, navController: NavController, viewModel: EditPostViewModel) {
+    viewModel.loadPostInfo(postId)
     Scaffold(topBar = {
         TopAppBar(title = {
             Text(text = "")
@@ -71,7 +72,7 @@ fun CreatePostScreen(navController: NavController, viewModel: CreatePostViewMode
                     viewModel.onCreateClicked(navController)
             }) {
                 Text(
-                    text = "Опубликовать",
+                    text = "Сохранить",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 20.sp,
                     modifier = Modifier.fillMaxWidth()
@@ -81,18 +82,27 @@ fun CreatePostScreen(navController: NavController, viewModel: CreatePostViewMode
         }
     }
 
-class CreatePostViewModel : ViewModel() {
+class EditPostViewModel : ViewModel() {
     val id = mutableIntStateOf(0)
     val title = mutableStateOf(TextFieldValue())
     val content = mutableStateOf(TextFieldValue())
     val showFailedDialog = mutableStateOf(false)
     val dialogTitle = mutableStateOf("Error")
     val dialogCaption = mutableStateOf("Error")
-    val isEdit = mutableStateOf(false)
     val isLoading = mutableStateOf(false)
 
+    fun loadPostInfo(postId: Int) {
+        viewModelScope.launch {
+            val req = RequestHandler.getPostById(postId)
+            title.value = TextFieldValue(req.post.title)
+            content.value = TextFieldValue(req.post.content)
+            id.intValue = req.post.id
+            isLoading.value = false
+        }
+    }
+
     fun onCreateClicked(navController: NavController) {
-        if (title.value.text == "" || content.value.text == "") {
+        if (title.value.text.isBlank() || content.value.text.isBlank()) {
             isLoading.value = false
             dialogTitle.value = "Ошибка"
             dialogCaption.value = "Пожалуйста введите заголовок и содержание"
@@ -101,7 +111,7 @@ class CreatePostViewModel : ViewModel() {
         }
         viewModelScope.launch {
             isLoading.value = true
-            val req = RequestHandler.createPost(title.value.text, content.value.text)
+            val req = RequestHandler.editPost(id.intValue, title.value.text, content.value.text)
             if (req == null) {
                 isLoading.value = false
                 dialogTitle.value = "Ошибка"
@@ -110,7 +120,10 @@ class CreatePostViewModel : ViewModel() {
                 return@launch
             }
             isLoading.value = false
-            navController.navigate(Screen.HomePage.route)
+            navController.navigate(Screen.PostPage.route.replace(
+                "{post_id}",
+                id.intValue.toString()
+            ))
         }
     }
 }
