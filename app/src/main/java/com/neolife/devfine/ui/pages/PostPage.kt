@@ -63,6 +63,7 @@ fun PostScreen(
                     ) {
                         DropdownMenuItem(
                             onClick = {
+                                viewModel.expanded.value = false
                                 navController.navigate(Screen.EditPostPage.route.replace(
                                     "{post_id}",
                                     viewModel.postId.intValue.toString()
@@ -72,7 +73,7 @@ fun PostScreen(
                         DropdownMenuItem(
                             onClick = {
                                 viewModel.deletePost(viewModel.postId.intValue, navController)
-                                navController.navigate(Screen.HomePage.route)
+                                navController.popBackStack()
                             },
                             text = { Text(text = "Удалить") })
                     }

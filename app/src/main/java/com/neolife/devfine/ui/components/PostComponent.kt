@@ -161,7 +161,7 @@ fun PostComponent(
                 viewModel.post.value?.comments?.let {
                     items(it.asReversed()) { data ->
                         var expanded by remember { mutableStateOf(false) }
-                        if (!viewModel.isLoading.value && (RequestHandler.role == "ADMIN" || viewModel.post.value?.post!!.author!!.username == SharedPrefManager().getUsername())) {
+                        if (!viewModel.isLoading.value && (RequestHandler.role == "ADMIN" || data.author!!.username == SharedPrefManager().getUsername())) {
 
                             Box(
                                 modifier = Modifier

@@ -84,12 +84,12 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
                 val imageByteArray = inputStream?.readBytes()
 
                 scope.launch {
+                    viewModel.isUpdatingAvatar.value = true
                     RequestHandler.changeAvatar(imageByteArray)
                     navController.navigate(Screen.ProfilePage.route) {
-                        popUpTo(Screen.ProfilePage.route) {
-                            saveState = true
-                        }
+                        popUpTo(Screen.ProfilePage.route)
                     }
+                    viewModel.isUpdatingAvatar.value = false
                 }
             }
         }
@@ -146,22 +146,32 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
             {
                 item {
                     if (!viewModel.isLoading.value) {
-                        AsyncImage(
-                            model = viewModel.avatar.value,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .size(180.dp)
-                                .clickable {
-                                    launcher.launch("image/jpeg")
-                                }
-                                .border(
-                                    2.dp,
-                                    color = MaterialTheme.colorScheme.outline,
-                                    CircleShape
-                                )
-                        )
+                        if(!viewModel.isUpdatingAvatar.value)
+                            AsyncImage(
+                                model = viewModel.avatar.value,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .size(180.dp)
+                                    .clickable {
+                                        launcher.launch("image/jpeg")
+                                    }
+                                    .border(
+                                        2.dp,
+                                        color = MaterialTheme.colorScheme.outline,
+                                        CircleShape
+                                    )
+                            )
+                        else
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
 
                         Spacer(modifier = Modifier.size(20.dp))
 
@@ -274,6 +284,7 @@ class ProfileViewModel : ViewModel() {
     val isLoading = mutableStateOf(false)
     val id = mutableIntStateOf(0)
     val goToAuth = mutableStateOf(false)
+    val isUpdatingAvatar = mutableStateOf(false)
 
     init {
         loadingUserData()

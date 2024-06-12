@@ -5,8 +5,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -14,6 +17,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
@@ -27,12 +31,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.neolife.devfine.core.network.RequestHandler
-import com.neolife.devfine.ui.navigation.Screen
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(navController: NavController, viewModel: CreatePostViewModel) {
+    val scrollState = rememberScrollState()
     Scaffold(topBar = {
         TopAppBar(title = {
             Text(text = "")
@@ -48,6 +52,7 @@ fun CreatePostScreen(navController: NavController, viewModel: CreatePostViewMode
     }) { innerPadding ->
         Column(
             modifier = Modifier
+                .verticalScroll(scrollState)
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
@@ -56,7 +61,7 @@ fun CreatePostScreen(navController: NavController, viewModel: CreatePostViewMode
                     Text(text = "Заголовок")
                 },
                 value = viewModel.title.value,
-                onValueChange = { viewModel.title.value = it},
+                onValueChange = { viewModel.title.value = it },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
@@ -68,7 +73,7 @@ fun CreatePostScreen(navController: NavController, viewModel: CreatePostViewMode
             )
 
             Button(onClick = {
-                    viewModel.onCreateClicked(navController)
+                viewModel.onCreateClicked(navController)
             }) {
                 Text(
                     text = "Опубликовать",
@@ -77,9 +82,23 @@ fun CreatePostScreen(navController: NavController, viewModel: CreatePostViewMode
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-        }
+
+            if (viewModel.showFailedDialog.value)
+                AlertDialog(
+                    onDismissRequest = { viewModel.showFailedDialog.value = false },
+                    title = { Text(text = viewModel.dialogTitle.value) },
+                    text = {
+                        Text(text = viewModel.dialogCaption.value)
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { viewModel.showFailedDialog.value = false }) {
+                            Text(text = "OK")
+                        }
+                    }
+                )
         }
     }
+}
 
 class CreatePostViewModel : ViewModel() {
     val id = mutableIntStateOf(0)
@@ -92,10 +111,25 @@ class CreatePostViewModel : ViewModel() {
     val isLoading = mutableStateOf(false)
 
     fun onCreateClicked(navController: NavController) {
-        if (title.value.text == "" || content.value.text == "") {
+        if (title.value.text.isBlank() && content.value.text.isBlank()) {
             isLoading.value = false
             dialogTitle.value = "Ошибка"
-            dialogCaption.value = "Пожалуйста введите заголовок и содержание"
+            dialogCaption.value = "Пожалуйста введите заголовок и содержание статьи"
+            showFailedDialog.value = true
+            return
+        }
+
+        if (title.value.text.isBlank()){
+            isLoading.value = false
+            dialogTitle.value = "Ошибка"
+            dialogCaption.value = "Пожалуйста введите заголовок статьи"
+            showFailedDialog.value = true
+            return
+        }
+        if (content.value.text.isBlank()){
+            isLoading.value = false
+            dialogTitle.value = "Ошибка"
+            dialogCaption.value = "Пожалуйста введите содержание статьи"
             showFailedDialog.value = true
             return
         }
@@ -110,7 +144,7 @@ class CreatePostViewModel : ViewModel() {
                 return@launch
             }
             isLoading.value = false
-            navController.navigate(Screen.HomePage.route)
+            navController.popBackStack()
         }
     }
 }

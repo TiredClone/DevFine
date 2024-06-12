@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -27,13 +29,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.neolife.devfine.core.network.RequestHandler
-import com.neolife.devfine.ui.navigation.Screen
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditPostScreen(postId: Int, navController: NavController, viewModel: EditPostViewModel) {
     viewModel.loadPostInfo(postId)
+    val scrollState = rememberScrollState()
     Scaffold(topBar = {
         TopAppBar(title = {
             Text(text = "")
@@ -51,6 +53,7 @@ fun EditPostScreen(postId: Int, navController: NavController, viewModel: EditPos
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .verticalScroll(scrollState)
         ) {
             OutlinedTextField(
                 label = {
@@ -120,10 +123,7 @@ class EditPostViewModel : ViewModel() {
                 return@launch
             }
             isLoading.value = false
-            navController.navigate(Screen.PostPage.route.replace(
-                "{post_id}",
-                id.intValue.toString()
-            ))
+            navController.popBackStack()
         }
     }
 }
