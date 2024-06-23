@@ -13,7 +13,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "1.15"
+        versionName = "1.16"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -59,9 +59,15 @@ android {
 }
 
 dependencies {
-    implementation(libs.markdown)
+    implementation(libs.markdown) {
+        this.exclude("com.atlassian.commonmark")
+    }
     implementation(libs.androidx.material.icons.extended)
-    implementation(libs.github.piashsarker.androidAppUpdateLibrary)
+    implementation(libs.jetbrains.markdown)
+    implementation("com.halilibo.compose-richtext:richtext-commonmark-android:1.0.0-alpha01")
+    implementation("com.halilibo.compose-richtext:richtext-markdown-android:1.0.0-alpha01")
+    implementation("com.halilibo.compose-richtext:richtext-ui-material3-android:1.0.0-alpha01")
+    implementation(libs.piashsarker.androidAppUpdateLibrary)
     implementation(libs.coil.kt)
     implementation(libs.android.core.splashscreen)
     implementation(libs.koin.android)

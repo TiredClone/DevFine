@@ -1,5 +1,6 @@
 package com.neolife.devfine.ui.components
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -9,13 +10,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,27 +32,32 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.neolife.devfine.R
+import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
+import com.halilibo.richtext.commonmark.MarkdownParseOptions
+import com.halilibo.richtext.markdown.BasicMarkdown
+import com.halilibo.richtext.ui.RichTextStyle
+import com.halilibo.richtext.ui.material3.RichText
+import com.halilibo.richtext.ui.resolveDefaults
 import com.neolife.devfine.core.network.Utils
 import com.neolife.devfine.core.viewmodel.HomeViewModel
 import com.neolife.devfine.di.core.SharedPrefManager
 import com.neolife.devfine.ui.navigation.Screen
-import dev.jeziellago.compose.markdowntext.MarkdownText
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,13 +71,15 @@ fun PostsCard(
         isSystemInDarkTheme() -> Color.White
         else -> Color.Black
     }
-
+    val context = LocalContext.current
     val colorBox = when {
-        isSystemInDarkTheme() -> colorResource(R.color.cardColorBlack)
+        isSystemInDarkTheme() -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.25f)
         else -> Color.White
     }
     val posts by viewModel.posts.collectAsStateWithLifecycle()
     val pullRefreshState = rememberPullToRefreshState()
+    var richTextStyle by remember { mutableStateOf(RichTextStyle().resolveDefaults()) }
+    var markdownParseOptions by remember { mutableStateOf(MarkdownParseOptions.Default) }
     if (pullRefreshState.isRefreshing) {
         LaunchedEffect(true) {
             viewModel.getAllPosts()
@@ -98,8 +108,8 @@ fun PostsCard(
                         val content = Utils.parseMarkdown(data.post.content)
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 16.dp)
+                                .padding(5.dp)
+                                .clip(shape = RoundedCornerShape(15.dp))
                                 .background(colorBox)
                                 .clickable {
                                     navController.navigate(
@@ -112,13 +122,19 @@ fun PostsCard(
                         ) {
                             Column(
                                 modifier = Modifier
-                                    .fillMaxWidth()
                                     .padding(16.dp)
                             ) {
                                 Row(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(colorBox)
+                                        .wrapContentSize()
+                                        .clickable {
+                                            navController.navigate(
+                                                Screen.ProfilePage.route.replace(
+                                                    "{username}",
+                                                    data.post.author?.username.toString()
+                                                )
+                                            )
+                                        }
                                 ) {
                                     AsyncImage(
                                         model = "https://devfine.tiredclone.me/api/users/images?filename=${data.post.author?.profilePicture}",
@@ -130,10 +146,8 @@ fun PostsCard(
                                     )
                                     Column(
                                         modifier = Modifier
-                                            .padding(start = 16.dp)
-                                            .background(colorBox)
-                                            .fillMaxSize(),
-                                        verticalArrangement = Arrangement.Bottom,
+                                            .padding(start = 16.dp),
+                                                verticalArrangement = Arrangement . Bottom,
                                         horizontalAlignment = Alignment.Start
                                     ) {
                                         data.post.author?.let {
@@ -159,30 +173,39 @@ fun PostsCard(
                                     fontSize = 23.sp,
                                     color = color,
                                 )
-                                MarkdownText(
-                                    modifier = Modifier.padding(top = 16.dp),
-                                    markdown = content,
-                                    onClick = {
-                                        navController.navigate(
-                                            Screen.PostPage.route.replace(
-                                                "{post_id}",
-                                                data.post.id.toString()
-                                            )
-                                        )
-                                    },
-                                    style = TextStyle(
-                                        color = color,
-                                        fontSize = 18.sp,
-                                        textAlign = TextAlign.Justify,
-                                    ),
-                                )
+                                Row(
+                                    modifier = Modifier.padding(top = 16.dp)
+                                ) {
+                                    val parser = remember(markdownParseOptions) {
+                                        CommonmarkAstNodeParser(markdownParseOptions)
+                                    }
+                                    val astNode = remember(parser) {
+                                        parser.parse(content)
+                                    }
+                                    RichText(
+                                        style = richTextStyle,
+                                    ) {
+                                        BasicMarkdown(astNode)
+                                    }
+                                }
                                 Row(
                                     horizontalArrangement = Arrangement.Start,
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.padding(top = 16.dp)
                                 ) {
                                     Text(text = data.votes.count().toString(), fontSize = 20.sp)
-                                    IconButton(onClick = { viewModel.addLike(data.post.id) }) {
+                                    IconButton(onClick = {
+                                        if (SharedPrefManager().containsRefreshToken()) {
+                                            viewModel.addLike(data.post.id)
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Вы не авторизованы",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                            navController.navigate(Screen.AuthPage.route)
+                                        }
+                                    }) {
                                         Icon(
                                             imageVector = if (data.votes.any { it.user?.username == SharedPrefManager().getUsername() }) {
                                                 Icons.Filled.ThumbUp
@@ -192,6 +215,16 @@ fun PostsCard(
                                             contentDescription = null
                                         )
                                     }
+
+                                    Text(
+                                        text = data.comments?.count().toString(),
+                                        fontSize = 20.sp,
+                                        modifier = Modifier.padding(end = 10.dp)
+                                    )
+                                    Icon(
+                                        imageVector = Icons.Filled.ChatBubbleOutline,
+                                        contentDescription = null
+                                    )
                                 }
                             }
                         }

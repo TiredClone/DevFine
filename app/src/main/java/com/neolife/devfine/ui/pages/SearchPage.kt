@@ -3,14 +3,19 @@ package com.neolife.devfine.ui.pages
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,12 +31,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -40,8 +47,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.neolife.devfine.R
+import coil.compose.AsyncImage
+import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
+import com.halilibo.richtext.commonmark.MarkdownParseOptions
+import com.halilibo.richtext.markdown.BasicMarkdown
+import com.halilibo.richtext.ui.RichTextStyle
+import com.halilibo.richtext.ui.material3.RichText
+import com.halilibo.richtext.ui.resolveDefaults
 import com.neolife.devfine.core.network.RequestHandler
+import com.neolife.devfine.core.network.Utils
 import com.neolife.devfine.core.network.responses.PostView
 import com.neolife.devfine.ui.navigation.Screen
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,11 +73,13 @@ fun SearchScreen(
     }
 
     val colorBox = when {
-        isSystemInDarkTheme() -> colorResource(R.color.cardColorBlack)
+        isSystemInDarkTheme() -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.25f)
         else -> Color.White
     }
     val posts by viewModel.posts.collectAsStateWithLifecycle()
     val pullRefreshState = rememberPullToRefreshState()
+    var richTextStyle by remember { mutableStateOf(RichTextStyle().resolveDefaults()) }
+    var markdownParseOptions by remember { mutableStateOf(MarkdownParseOptions.Default) }
     if (pullRefreshState.isRefreshing) {
         LaunchedEffect(true) {
             viewModel.getAllPosts()
@@ -73,29 +89,33 @@ fun SearchScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar({OutlinedTextField(
-                modifier = Modifier.padding(end = 15.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp)),
-                value = viewModel.query.value,
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.Black,
-                    focusedBorderColor = Color.Black,
-                    focusedContainerColor = Color.Black,
-                    disabledBorderColor = Color.Black,
-                    unfocusedBorderColor = Color.Black,
-                ),
-                placeholder = { Text("Поиск", color = Color.Gray) },
-                onValueChange = { value ->
-                    viewModel.query.value = value
-                })})
+            TopAppBar({
+                OutlinedTextField(
+                    modifier = Modifier
+                        .padding(end = 15.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp)),
+                    value = viewModel.query.value,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = Color.Black,
+                        focusedBorderColor = Color.Black,
+                        focusedContainerColor = Color.Black,
+                        disabledBorderColor = Color.Black,
+                        unfocusedBorderColor = Color.Black,
+                    ),
+                    placeholder = { Text("Поиск", color = Color.Gray) },
+                    onValueChange = { value ->
+                        viewModel.query.value = value
+                    })
+            })
         }, contentWindowInsets = WindowInsets(0.dp)
-    ) {innerPadding ->
+    ) { innerPadding ->
         Box(
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .padding(innerPadding)
                 .fillMaxSize()
                 .nestedScroll(pullRefreshState.nestedScrollConnection),
-            ) {
+        ) {
             if (viewModel.isLoading.value) {
                 Box(
                     modifier = Modifier
@@ -110,10 +130,11 @@ fun SearchScreen(
                     items(if (viewModel.query.value.text.isNotEmpty()) posts.toList().filter {
                         it.post.title.lowercase().contains(viewModel.query.value.text.lowercase())
                     } else posts.toList(), key = { it.post.id }) { data ->
+                        val content = Utils.parseMarkdown(data.post.content)
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 16.dp)
+                                .padding(5.dp)
+                                .clip(shape = RoundedCornerShape(15.dp))
                                 .background(colorBox)
                                 .clickable {
                                     navController.navigate(
@@ -129,13 +150,68 @@ fun SearchScreen(
                                     .fillMaxWidth()
                                     .padding(16.dp)
                             ) {
+                                Row(
+                                    modifier = Modifier
+                                        .wrapContentSize()
+                                        .clickable {
+                                            navController.navigate(Screen.ProfilePage.route.replace(
+                                                "{username}",
+                                                data.post.author?.username.toString()
+                                            ))
+                                        }
+                                ) {
+                                    AsyncImage(
+                                        model = "https://devfine.tiredclone.me/api/users/images?filename=${data.post.author?.profilePicture}",
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .size(64.dp)
+                                    )
+                                    Column(
+                                        modifier = Modifier
+                                            .padding(start = 16.dp),
+                                        verticalArrangement = Arrangement.Bottom,
+                                        horizontalAlignment = Alignment.Start
+                                    ) {
+                                        data.post.author?.let {
+                                            Text(
+                                                modifier = Modifier.padding(top = 4.dp),
+                                                text = it.username,
+                                                fontSize = 20.sp,
+                                                color = color,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                modifier = Modifier.padding(top = 4.dp),
+                                                text = Utils.TimeOrDate(data.post.createdAt.toString()),
+                                                fontSize = 15.sp
+                                            )
+                                        }
+                                    }
+                                }
                                 Text(
                                     text = data.post.title,
+                                    modifier = Modifier.padding(top = 16.dp),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 23.sp,
                                     color = color
                                 )
-                                Text(text = data.post.content, color = color)
+                                Row(
+                                    modifier = Modifier.padding(top = 16.dp)
+                                ) {
+                                    val parser = remember(markdownParseOptions) {
+                                        CommonmarkAstNodeParser(markdownParseOptions)
+                                    }
+                                    val astNode = remember(parser) {
+                                        parser.parse(content)
+                                    }
+                                    RichText(
+                                        style = richTextStyle,
+                                    ) {
+                                        BasicMarkdown(astNode)
+                                    }
+                                }
                             }
                         }
                     }

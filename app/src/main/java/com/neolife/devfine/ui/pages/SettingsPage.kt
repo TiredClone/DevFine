@@ -98,7 +98,10 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp)
-                                .clickable { navController.navigate(Screen.ProfilePage.route) }
+                                .clickable { navController.navigate(Screen.ProfilePage.route.replace(
+                                    "{username}",
+                                    SharedPrefManager().getUsername().toString()
+                                )) }
                         ) {
                             Box(
                                 modifier = Modifier

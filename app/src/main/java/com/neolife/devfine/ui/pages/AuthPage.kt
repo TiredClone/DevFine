@@ -2,6 +2,8 @@ package com.neolife.devfine.ui.pages
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,14 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -57,14 +55,6 @@ fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
     Scaffold(topBar = {
         TopAppBar(title = {
             Text(text = "")
-        }, navigationIcon = {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    modifier = Modifier.size(30.dp)
-                )
-            }
         })
     }, contentWindowInsets = WindowInsets(0.dp)) { innerPadding ->
         Column(
@@ -132,11 +122,23 @@ fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Нет аккаунта?", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text(text = "Нет аккаунта?", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 TextButton(onClick = { navController.navigate(Screen.RegisterPage.route) }) {
-                    Text(text = "Регистрация", fontSize = 15.sp)
+                    Text(text = "Регистрация", fontSize = 18.sp)
                 }
             }
+
+            Text(text = "или", modifier = Modifier.padding(top = 16.dp), fontWeight = FontWeight.Medium)
+
+            Text(text = "Автономный аккаунт",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 16.dp)
+                    .clickable (interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        navController.navigate(Screen.HomePage.route)
+                    })
 
             if (viewModel.showFailedDialog.value)
                 AlertDialog(
@@ -172,6 +174,7 @@ class AuthViewModel : ViewModel() {
     val dialogTitle = mutableStateOf("Error")
     val dialogCaption = mutableStateOf("Error")
     val isLoading = mutableStateOf(false)
+
 
     fun onLoginClicked(navController: NavController) {
         if (login.value.text == "" || password.value.text == "") {

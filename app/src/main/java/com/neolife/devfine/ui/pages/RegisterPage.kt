@@ -2,6 +2,8 @@ package com.neolife.devfine.ui.pages
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -127,6 +129,17 @@ fun RegisterScreen(viewModel: RegisterViewModel, navController: NavController) {
                     fontSize = 20.sp
                 )
             }
+
+            Text(text = "или", modifier = Modifier.padding(top = 16.dp), fontWeight = FontWeight.Medium)
+            Text(text = "Автономный аккаунт",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 16.dp)
+                    .clickable (interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                navController.navigate(Screen.HomePage.route)
+            })
 
             if (viewModel.showFailedDialog.value)
                 AlertDialog(

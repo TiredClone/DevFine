@@ -10,8 +10,10 @@ object Utils {
         // Extract the first paragraph
         val paragraphs = markdown.lines()
         var firstParagraph = paragraphs.first()
-
         val imagePattern = Pattern.compile("(!\\[.*?\\]\\((.*?)\\))")
+
+        firstParagraph = imagePattern.matcher(firstParagraph).replaceAll("")
+
         val imageMatcher = imagePattern.matcher(markdown)
         if (imageMatcher.find()) {
             val firstImage = imageMatcher.group(1)

@@ -142,9 +142,6 @@ object RequestHandler {
     suspend fun getProfileByUsername(username: String): UserInfo? {
         try {
             val req = client.get {
-                headers{
-                    append("Authorization", "Bearer $accessToken")
-                }
                 url {
                     protocol = PROTOCOL
                     host = BASEURL

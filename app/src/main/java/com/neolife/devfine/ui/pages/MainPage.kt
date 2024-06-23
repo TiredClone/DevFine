@@ -33,7 +33,11 @@ import com.neolife.devfine.ui.navigation.Screen
 @Composable
 fun MainScreen() {
     val localNavController = rememberNavController()
-    val startDestination = Screen.HomePage.route
+    val startDestination = if (SharedPrefManager().containsRefreshToken()){
+        Screen.HomePage.route
+    } else {
+        Screen.AuthPage.route
+    }
 
     val TopLevelDestination = remember {
         listOf(

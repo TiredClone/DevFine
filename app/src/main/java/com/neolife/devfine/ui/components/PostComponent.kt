@@ -1,5 +1,6 @@
 package com.neolife.devfine.ui.components
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -17,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -45,10 +48,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.halilibo.richtext.commonmark.MarkdownParseOptions
+import com.halilibo.richtext.ui.RichTextStyle
+import com.halilibo.richtext.ui.resolveDefaults
 import com.neolife.devfine.core.network.RequestHandler
 import com.neolife.devfine.core.network.Utils
 import com.neolife.devfine.core.viewmodel.PostScreenViewModel
 import com.neolife.devfine.di.core.SharedPrefManager
+import com.neolife.devfine.ui.navigation.Screen
 import dev.jeziellago.compose.markdowntext.MarkdownText
 
 @Composable
@@ -62,6 +69,9 @@ fun PostComponent(
         else -> Color.Black
     }
 
+    val context = LocalContext.current
+    var richTextStyle by remember { mutableStateOf(RichTextStyle().resolveDefaults()) }
+    var markdownParseOptions by remember { mutableStateOf(MarkdownParseOptions.Default) }
     Column(
         modifier = Modifier.padding(innerPadding),
         horizontalAlignment = Alignment.Start,
@@ -76,8 +86,14 @@ fun PostComponent(
                 item {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .wrapContentSize()
                             .padding(start = 16.dp)
+                            .clickable {
+                                navController.navigate(Screen.ProfilePage.route.replace(
+                                    "{username}",
+                                    viewModel.post.value?.post?.author?.username.toString()
+                                ))
+                            }
                     ) {
                         AsyncImage(
                             model = "https://devfine.tiredclone.me/api/users/images?filename=${viewModel.post.value?.post?.author?.profilePicture}",
@@ -117,10 +133,28 @@ fun PostComponent(
                             text = it,
                             color = color,
                             fontSize = 23.sp,
-                            modifier = Modifier.padding(top = 16.dp, start = 16.dp),
+                            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
                             fontWeight = FontWeight.Bold
                         )
                     }
+
+//                    Row(
+//                        modifier = Modifier.padding(top = 16.dp)
+//                    ) {
+//                        val parser = remember(markdownParseOptions) {
+//                            CommonmarkAstNodeParser(markdownParseOptions)
+//                        }
+//                        val astNode = remember(parser) {
+//                            parser.parse(viewModel.post.value!!.post.content)
+//                        }
+//                        RichText(
+//                            style = richTextStyle,
+//                            modifier = Modifier.padding(8.dp),
+//                        ) {
+//                            BasicMarkdown(astNode)
+//                        }
+//                    }
+
                     MarkdownText(
                         modifier = Modifier.padding(16.dp),
                         markdown = viewModel.post.value!!.post.content,
@@ -130,30 +164,61 @@ fun PostComponent(
                             textAlign = TextAlign.Justify,
                         ),
                     )
+
                 }
-                item(){
+                item() {
                     Row(
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = 16.dp, bottom = 16.dp )
+                        modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)
                     ) {
-                        Text(text = viewModel.post.value?.votes?.count().toString(), fontSize = 20.sp)
-                        IconButton(onClick = { viewModel.addLike(viewModel.post.value?.post?.id!!) }) {
-                            Icon(
-                                imageVector = (if (viewModel.post.value?.votes!!.any { it.user?.username == SharedPrefManager().getUsername() }) {
-                                    Icons.Filled.ThumbUp
-                                } else {
-                                    Icons.Outlined.ThumbUp
-                                }), contentDescription = null
+
+                            Text(
+                                text = viewModel.post.value?.votes?.count().toString(),
+                                fontSize = 20.sp
                             )
-                        }
+                            IconButton(onClick = {
+                                if (SharedPrefManager().containsRefreshToken()) {
+                                    viewModel.addLike(viewModel.post.value?.post?.id!!)
+                                } else {
+                                    Toast.makeText(context, "Вы не авторизованы", Toast.LENGTH_LONG)
+                                        .show()
+                                    navController.navigate(Screen.AuthPage.route)
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = (if (viewModel.post.value?.votes!!.any { it.user?.username == SharedPrefManager().getUsername() }) {
+                                        Icons.Filled.ThumbUp
+                                    } else {
+                                        Icons.Outlined.ThumbUp
+                                    }), contentDescription = null
+                                )
+                            }
+
+
+                        Text(
+                            text = viewModel.post.value?.comments?.count().toString(),
+                            fontSize = 20.sp,
+                            modifier = Modifier.padding(end = 10.dp)
+                        )
+                        Icon(
+                            imageVector = Icons.Filled.ChatBubbleOutline,
+                            contentDescription = null
+                        )
                     }
+
                 }
                 item {
                     HorizontalDivider()
                 }
                 item {
-                    Text(text = "Комментарии", modifier = Modifier.padding(16.dp), fontSize = 18.sp, color = color, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "Комментарии",
+                        modifier = Modifier.padding(16.dp),
+                        fontSize = 18.sp,
+                        color = color,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
                 item {
                     HorizontalDivider()
@@ -222,6 +287,12 @@ fun PostComponent(
                                     modifier = Modifier
                                         .clip(CircleShape)
                                         .size(40.dp)
+                                        .clickable {
+                                            navController.navigate(Screen.ProfilePage.route.replace(
+                                                "{username}",
+                                                data.author.username
+                                            ))
+                                        }
 
                                 )
                             },
@@ -231,7 +302,7 @@ fun PostComponent(
                                     expanded = true
                                 })
 
-                            HorizontalDivider(Modifier.padding(5.dp))
+                        HorizontalDivider(Modifier.padding(5.dp))
                     }
                 }
             }
@@ -253,11 +324,11 @@ fun PostComponent(
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = 0.5f))
                 .clickable {
-                           viewModel.isEditing.value = false
-                            viewModel.comment.value = TextFieldValue("")
+                    viewModel.isEditing.value = false
+                    viewModel.comment.value = TextFieldValue("")
                 },
             contentAlignment = Alignment.Center
         ) {
-            Text(text="Нажми на меня чтобы отменить редактирование")
+            Text(text = "Нажми на меня чтобы отменить редактирование")
         }
 }

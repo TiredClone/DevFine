@@ -1,7 +1,5 @@
 package com.neolife.devfine.ui.navigation
 
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,9 +27,7 @@ fun HomeNavHost(modifier: Modifier = Modifier,
                 navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = startDestination,
-        enterTransition = { EnterTransition.None },
-        exitTransition = { ExitTransition.None }
+        startDestination = startDestination
     ) {
         composable(route = Screen.HomePage.route){
             HomeScreen(navController = navController, viewModel = viewModel())
@@ -67,8 +63,11 @@ fun HomeNavHost(modifier: Modifier = Modifier,
         composable(route = Screen.RegisterPage.route){
             RegisterScreen(viewModel = viewModel(), navController = navController)
         }
-        composable(route = Screen.ProfilePage.route){
-            ProfileScreen(navController = navController , viewModel = viewModel())
+
+        composable(route = Screen.ProfilePage.route, arguments = listOf(navArgument("username") { type = NavType.StringType })) {
+                backStackEntry ->
+            backStackEntry.arguments?.getString("username")
+                ?.let { ProfileScreen(navController = navController, viewModel = viewModel(), username = it) }
         }
 
         composable(route = Screen.ThemePage.route){

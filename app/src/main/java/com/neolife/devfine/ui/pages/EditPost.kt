@@ -1,5 +1,6 @@
 package com.neolife.devfine.ui.pages
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -34,11 +36,14 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditPostScreen(postId: Int, navController: NavController, viewModel: EditPostViewModel) {
+    val color = when {
+        isSystemInDarkTheme() -> Color.White
+        else -> Color.Black}
     viewModel.loadPostInfo(postId)
     val scrollState = rememberScrollState()
     Scaffold(topBar = {
         TopAppBar(title = {
-            Text(text = "")
+            Text(text = "Редактирование материала", fontWeight = FontWeight.Bold,  color = color)
         }, navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
@@ -65,7 +70,7 @@ fun EditPostScreen(postId: Int, navController: NavController, viewModel: EditPos
             )
             OutlinedTextField(
                 label = {
-                    Text(text = "Содержание")
+                    Text(text = "Содержание в формате Markdown")
                 }, value = viewModel.content.value,
                 onValueChange = { viewModel.content.value = it },
                 modifier = Modifier.fillMaxWidth()
@@ -108,7 +113,7 @@ class EditPostViewModel : ViewModel() {
         if (title.value.text.isBlank() || content.value.text.isBlank()) {
             isLoading.value = false
             dialogTitle.value = "Ошибка"
-            dialogCaption.value = "Пожалуйста введите заголовок и содержание"
+            dialogCaption.value = "Пожалуйста, введите заголовок и содержание"
             showFailedDialog.value = true
             return
         }

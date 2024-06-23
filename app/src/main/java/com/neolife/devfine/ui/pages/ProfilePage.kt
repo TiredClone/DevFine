@@ -21,8 +21,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,7 +42,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,10 +52,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -59,21 +60,27 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.neolife.devfine.R
+import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
+import com.halilibo.richtext.commonmark.MarkdownParseOptions
+import com.halilibo.richtext.markdown.BasicMarkdown
+import com.halilibo.richtext.ui.RichTextStyle
+import com.halilibo.richtext.ui.material3.RichText
+import com.halilibo.richtext.ui.resolveDefaults
 import com.neolife.devfine.core.network.RequestHandler
 import com.neolife.devfine.core.network.Utils
 import com.neolife.devfine.core.network.responses.PostView
 import com.neolife.devfine.di.core.SharedPrefManager
 import com.neolife.devfine.ui.navigation.Screen
-import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
+fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController, username: String) {
     if (viewModel.goToAuth.value)
         navController.navigate(Screen.AuthPage.route)
+    viewModel.username.value = username
+    viewModel.loadingUserData()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val posts by viewModel.posts.collectAsStateWithLifecycle()
@@ -94,6 +101,8 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
             }
         }
     val pullRefreshState = rememberPullToRefreshState()
+    var richTextStyle by remember { mutableStateOf(RichTextStyle().resolveDefaults()) }
+    var markdownParseOptions by remember { mutableStateOf(MarkdownParseOptions.Default) }
     if (pullRefreshState.isRefreshing) {
         LaunchedEffect(true) {
             viewModel.loadingUserData()
@@ -104,12 +113,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
         topBar = {
             TopAppBar(title = { Text(text = "") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigate(Screen.SettingsPage.route){
-                        popUpTo(navController.graph.id)
-                        {
-                            inclusive = true
-                        }
-                    } }) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -134,7 +138,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
             }
 
             val colorBox = when {
-                isSystemInDarkTheme() -> colorResource(R.color.cardColorBlack)
+                isSystemInDarkTheme() -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.25f)
                 else -> Color.White
             }
 
@@ -155,7 +159,11 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
                                     .clip(CircleShape)
                                     .size(180.dp)
                                     .clickable {
-                                        launcher.launch("image/jpeg")
+                                        if (username == SharedPrefManager()
+                                                .getUsername()
+                                                .toString()
+                                        )
+                                            launcher.launch("image/jpeg")
                                     }
                                     .border(
                                         2.dp,
@@ -166,6 +174,8 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
                         else
                             Box(
                                 modifier = Modifier
+                                    .padding(5.dp)
+                                    .clip(shape = RoundedCornerShape(15.dp))
                                     .fillMaxSize()
                                     .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
                                 contentAlignment = Alignment.Center
@@ -199,7 +209,8 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 16.dp)
+                                .padding(5.dp)
+                                .clip(shape = RoundedCornerShape(15.dp))
                                 .background(colorBox)
                                 .clickable {
                                     navController.navigate(
@@ -215,29 +226,62 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
                                     .fillMaxWidth()
                                     .padding(16.dp)
                             ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                ) {
+                                    AsyncImage(
+                                        model = "https://devfine.tiredclone.me/api/users/images?filename=${data.post.author?.profilePicture}",
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .size(64.dp)
+                                    )
+                                    Column(
+                                        modifier = Modifier
+                                            .padding(start = 16.dp),
+                                        verticalArrangement = Arrangement.Bottom,
+                                        horizontalAlignment = Alignment.Start
+                                    ) {
+                                        data.post.author?.let {
+                                            Text(
+                                                modifier = Modifier.padding(top = 4.dp),
+                                                text = it.username,
+                                                fontSize = 20.sp,
+                                                color = color,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                modifier = Modifier.padding(top = 4.dp),
+                                                text = Utils.TimeOrDate(data.post.createdAt.toString()),
+                                                fontSize = 15.sp
+                                            )
+                                        }
+                                    }
+                                }
                                 Text(
                                     text = data.post.title,
                                     fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(top = 16.dp),
                                     fontSize = 23.sp,
                                     color = color,
                                 )
-                                MarkdownText(
-                                    modifier = Modifier.padding(top = 16.dp),
-                                    markdown = content,
-                                    onClick = {
-                                        navController.navigate(
-                                            Screen.PostPage.route.replace(
-                                                "{post_id}",
-                                                data.post.id.toString()
-                                            )
-                                        )
-                                    },
-                                    style = TextStyle(
-                                        color = color,
-                                        fontSize = 18.sp,
-                                        textAlign = TextAlign.Justify,
-                                    ),
-                                )
+                                Row(
+                                    modifier = Modifier.padding(top = 16.dp)
+                                ) {
+                                    val parser = remember(markdownParseOptions) {
+                                        CommonmarkAstNodeParser(markdownParseOptions)
+                                    }
+                                    val astNode = remember(parser) {
+                                        parser.parse(content)
+                                    }
+                                    RichText(
+                                        style = richTextStyle,
+                                    ) {
+                                        BasicMarkdown(astNode)
+                                    }
+                                }
                                 Row(
                                     horizontalArrangement = Arrangement.Start,
                                     verticalAlignment = Alignment.CenterVertically,
@@ -253,6 +297,15 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController) {
                                             }), contentDescription = null
                                         )
                                     }
+                                    Text(
+                                        text = data.comments?.count().toString(),
+                                        fontSize = 20.sp,
+                                        modifier = Modifier.padding(end = 10.dp)
+                                    )
+                                    Icon(
+                                        imageVector = Icons.Filled.ChatBubbleOutline,
+                                        contentDescription = null
+                                    )
                                 }
 
                             }
@@ -286,21 +339,17 @@ class ProfileViewModel : ViewModel() {
     val goToAuth = mutableStateOf(false)
     val isUpdatingAvatar = mutableStateOf(false)
 
-    init {
-        loadingUserData()
-    }
-
     fun loadingUserData() {
-        if (!SharedPrefManager().containsRefreshToken()) {
-            goToAuth.value = true
-            return
-        }
+//        if (!SharedPrefManager().containsRefreshToken()) {
+//            goToAuth.value = true
+//            return
+//        }
 
         viewModelScope.launch {
             isLoading.value = true
 
             val infoReq =
-                RequestHandler.getProfileByUsername(SharedPrefManager().getUsername().toString())
+                RequestHandler.getProfileByUsername(username.value)
 
             if (infoReq == null) {
                 goToAuth.value = true
