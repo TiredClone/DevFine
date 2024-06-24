@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContactMail
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.Clear
-import androidx.compose.material.icons.outlined.ColorLens
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -197,31 +196,6 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
                     thickness = 1.dp,
                     color = Color.Gray,
                     modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
-                )
-            }
-            item {
-                ListItem(headlineContent = {
-                    Text(
-                        text = "Оформление",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = color
-                    )
-                },
-                    leadingContent = {
-                        Icon(
-                            imageVector = Icons.Outlined.ColorLens,
-                            contentDescription = "Theme",
-                            modifier = Modifier.size(30.dp),
-                            tint = color
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 10.dp)
-                        .clickable {
-                            navController.navigate(Screen.ThemePage.route)
-                        }
                 )
             }
             item {

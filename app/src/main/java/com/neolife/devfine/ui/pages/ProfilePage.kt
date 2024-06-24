@@ -322,7 +322,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController, use
 
                                 }
                                 Text(
-                                    text = data.post.title,
+                                    text = data.post.title.split(" ").take(15).joinToString(" ").take(100)+ "...",
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(top = 16.dp),
                                     fontSize = 23.sp,

@@ -240,7 +240,7 @@ fun PostsCard(
                                     }
                                 }
                                 Text(
-                                    text = data.post.title,
+                                    text = data.post.title.split(" ").take(15).joinToString(" ").take(100)+ "...",
                                     modifier = Modifier.padding(top = 16.dp),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 23.sp,

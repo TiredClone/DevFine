@@ -16,9 +16,9 @@ object Utils {
         val spacedWords = firstParagraph.split(" ")
         val first30Words = spacedWords.take(30)
         firstParagraph = if (first30Words.size < spacedWords.size) {
-            first30Words.dropLastWhile { it.endsWith(".") || it.endsWith(",") }.joinToString(" ") + "..."
+            first30Words.dropLastWhile { it.endsWith(".") || it.endsWith(",") }.joinToString(" ").take(260) + "..."
         } else {
-            first30Words.joinToString(" ")
+            first30Words.joinToString(" ").take(250)
         }
         val imageMatcher = imagePattern.matcher(markdown)
         if (imageMatcher.find()) {

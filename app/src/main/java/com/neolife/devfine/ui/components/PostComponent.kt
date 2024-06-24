@@ -139,7 +139,7 @@ fun PostComponent(
                     }
                     viewModel.post.value?.post?.title?.let {
                         Text(
-                            text = it,
+                            text = it.split(" ").take(15).joinToString(" ").take(100)+ "...",
                             color = color,
                             fontSize = 23.sp,
                             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
