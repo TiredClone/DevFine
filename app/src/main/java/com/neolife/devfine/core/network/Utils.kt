@@ -13,15 +13,32 @@ object Utils {
         val imagePattern = Pattern.compile("(!\\[.*?\\]\\((.*?)\\))")
 
         firstParagraph = imagePattern.matcher(firstParagraph).replaceAll("")
-
+        val spacedWords = firstParagraph.split(" ")
+        val first30Words = spacedWords.take(30)
+        firstParagraph = if (first30Words.size < spacedWords.size) {
+            first30Words.dropLastWhile { it.endsWith(".") || it.endsWith(",") }.joinToString(" ") + "..."
+        } else {
+            first30Words.joinToString(" ")
+        }
         val imageMatcher = imagePattern.matcher(markdown)
         if (imageMatcher.find()) {
             val firstImage = imageMatcher.group(1)
-            return firstParagraph + "\n\n" + firstImage
+            return firstParagraph.trim() + "\n\n" + firstImage
         } else {
             return firstParagraph
         }
     }
+
+    fun checkPassword(password: String): Boolean {
+        val minLength = 8
+        val hasUpperCase = password.any { it.isUpperCase() }
+        val hasLowerCase = password.any { it.isLowerCase() }
+        val hasDigit = password.any { it.isDigit() }
+        val hasSpecialChar = password.any { it.isLetterOrDigit().not() }
+        return password.length >= minLength && hasUpperCase && hasLowerCase && hasDigit && hasSpecialChar
+
+    }
+
     fun TimeOrDate(timestamp: String): String {
         val currentDate = LocalDate.now()
         val parsedTimestamp = Instant.parse(timestamp)

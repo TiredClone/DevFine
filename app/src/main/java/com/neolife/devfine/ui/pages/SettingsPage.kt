@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContactMail
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.ColorLens
@@ -144,6 +145,28 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel) {
             item {
                 if (SharedPrefManager().containsRefreshToken()) {
                     if (!viewModel.isLoading.value) {
+                        if(viewModel.role.value == "ADMIN")
+                            ListItem(headlineContent = {
+                                Text(
+                                    text = "Открыть список всех пользователей",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = color
+                                )
+                            },
+                                leadingContent = {
+                                    Icon(
+                                        imageVector = Icons.Default.ContactMail,
+                                        contentDescription = "profile",
+                                        modifier = Modifier.size(30.dp),
+                                        tint = color
+                                    )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        navController.navigate(Screen.AllUsersPage.route)
+                                    })
                         ListItem(headlineContent = {
                             Text(
                                 text = "Выйти из аккаунта",
@@ -234,6 +257,7 @@ class SettingsViewModel : ViewModel() {
     val isLoading = mutableStateOf(false)
     val username = mutableStateOf("")
     val avatar = mutableStateOf("")
+    val role = mutableStateOf("")
     val goToAuth = mutableStateOf(false)
 
     init {
@@ -255,6 +279,7 @@ class SettingsViewModel : ViewModel() {
                     goToAuth.value = true
                 } else {
                     username.value = infoReq.username
+                    role.value = infoReq.role
                     avatar.value =
                         "https://devfine.tiredclone.me/api/users/images?filename=${infoReq.profilePicture}"
 

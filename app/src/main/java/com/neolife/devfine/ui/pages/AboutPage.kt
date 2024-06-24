@@ -19,7 +19,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,14 +30,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.neolife.devfine.BuildConfig
 import com.neolife.devfine.R
 import com.neolife.devfine.di.core.AppInfoManager
+import java.text.SimpleDateFormat
+import java.util.Date
 
-@SuppressLint("SuspiciousIndentation")
+
+@SuppressLint("SuspiciousIndentation", "SimpleDateFormat")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(navController: NavController) {
     val versionName = AppInfoManager().getAppVersion()
+    val sdf = SimpleDateFormat("dd.MM.yyyy")
+    val buildDate = sdf.format(Date(BuildConfig.BUILD_TIME.toLong()))
     Scaffold(
         topBar = {
             TopAppBar(title = {
@@ -87,7 +92,7 @@ fun AboutScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Версия от 10.06.2024",
+                text = "Версия от ${buildDate}",
                 color = Color.Gray,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 20.sp
@@ -97,17 +102,6 @@ fun AboutScreen(navController: NavController) {
                 color = Color.Gray,
                 modifier = Modifier.padding(top = 40.dp, bottom = 40.dp)
             )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                TextButton(onClick = {
-                    //СДЕЛАТЬ ПОДДЕРЖКУ
-                }) {
-                    Text(text = "Сообщить об ошибке", fontSize = 20.sp)
-                }
-            }
         }
     }
 }

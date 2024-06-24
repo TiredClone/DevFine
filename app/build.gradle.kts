@@ -1,3 +1,7 @@
+import com.android.build.api.variant.BuildConfigField
+import java.io.ByteArrayOutputStream
+import java.util.regex.Pattern
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -13,7 +17,9 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "1.16"
+        versionName = "1.17"
+
+        buildConfigField("String", "BUILD_TIME", "\"" + System.currentTimeMillis().toString() + "\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -30,11 +36,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "BUILD_TIME", "\"" + System.currentTimeMillis().toString() + "\"")
             signingConfig = signingConfigs.getByName("debug")
         }
 
         debug {
             isMinifyEnabled = false
+            buildConfigField("String", "BUILD_TIME", "\"" + System.currentTimeMillis().toString() + "\"")
             isShrinkResources = false
         }
     }
@@ -47,6 +55,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -57,6 +66,7 @@ android {
         }
     }
 }
+
 
 dependencies {
     implementation(libs.markdown) {

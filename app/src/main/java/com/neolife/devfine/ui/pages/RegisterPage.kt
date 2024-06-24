@@ -48,6 +48,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.neolife.devfine.R
 import com.neolife.devfine.core.network.RequestHandler
+import com.neolife.devfine.core.network.Utils
 import com.neolife.devfine.ui.navigation.Screen
 import kotlinx.coroutines.launch
 
@@ -99,6 +100,7 @@ fun RegisterScreen(viewModel: RegisterViewModel, navController: NavController) {
                 Text(text = "Логин")
             },
                 value = viewModel.login.value,
+                singleLine = true,
                 onValueChange = { viewModel.login.value = it })
 
 
@@ -109,7 +111,20 @@ fun RegisterScreen(viewModel: RegisterViewModel, navController: NavController) {
                     Text(text = "Пароль")
                 },
                 value = viewModel.password.value,
+                singleLine = true,
                 onValueChange = { viewModel.password.value = it },
+                visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation()
+            )
+
+            Spacer(modifier = Modifier.padding(10.dp))
+
+            OutlinedTextField(
+                label = {
+                    Text(text = "Повторите пароль")
+                },
+                value = viewModel.password2.value,
+                singleLine = true,
+                onValueChange = { viewModel.password2.value = it },
                 visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation()
             )
 
@@ -171,22 +186,38 @@ fun RegisterScreen(viewModel: RegisterViewModel, navController: NavController) {
 class RegisterViewModel : ViewModel() {
     val login = mutableStateOf(TextFieldValue())
     val password = mutableStateOf(TextFieldValue())
+    val password2 = mutableStateOf(TextFieldValue())
     val showFailedDialog = mutableStateOf(false)
     val dialogTitle = mutableStateOf("Error")
     val dialogCaption = mutableStateOf("Error")
     val isLoading = mutableStateOf(false)
 
     fun onRegisterClicked(navController: NavController) {
-        if (login.value.text == "" || password.value.text == "") {
+        if (login.value.text == "" || password.value.text == "" || password2.value.text == "") {
             isLoading.value = false
             dialogTitle.value = "Ошибка"
             dialogCaption.value = "Пожалуйста введите логин и пароль"
             showFailedDialog.value = true
             return
         }
+        if (password2.value.text != password.value.text) {
+            isLoading.value = false
+            dialogTitle.value = "Ошибка"
+            dialogCaption.value = "Пароли не совпадают"
+            showFailedDialog.value = true
+            return
+        }
+        if (Utils.checkPassword(password.value.text)) {
+            isLoading.value = false
+            dialogTitle.value = "Ошибка"
+            dialogCaption.value = "Пароль должен содержать от 8 символов, цифры, буквы, спец. символ (!,? и т.д.)"
+            showFailedDialog.value = true
+            return
+        }
+
         viewModelScope.launch {
             isLoading.value = true
-            val req = RequestHandler.registerUser(login.value.text, password.value.text)
+            val req = RequestHandler.registerUser(login.value.text.trim(), password.value.text.trim())
             if (req == null || !req) {
                 isLoading.value = false
                 dialogTitle.value = "Ошибка"

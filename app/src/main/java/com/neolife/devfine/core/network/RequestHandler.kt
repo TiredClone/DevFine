@@ -176,6 +176,23 @@ object RequestHandler {
         }
     }
 
+    suspend fun getAllUsers(): MutableList<UserInfo> {
+        val req = client.get {
+            headers{
+                append("Authorization", "Bearer $accessToken")
+            }
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/users/getAll")
+            }
+        }
+
+        val res: MutableList<UserInfo> = req.body()
+
+        return res
+    }
+
     suspend fun getAllPosts(): MutableList<PostView> {
         val req = client.get {
             url {
@@ -285,6 +302,22 @@ object RequestHandler {
         }
         return true
     }
+
+    suspend fun removeUser(id: Int): Boolean {
+        val req = client.delete {
+            headers{
+                append("Authorization", "Bearer $accessToken")
+            }
+            url {
+                protocol = PROTOCOL
+                host = BASEURL
+                path("api/users/$id")
+            }
+            contentType(ContentType.Application.Json)
+        }
+        return true
+    }
+
     suspend fun changeAvatar(image: ByteArray?) {
         val req = client.post {
             headers{

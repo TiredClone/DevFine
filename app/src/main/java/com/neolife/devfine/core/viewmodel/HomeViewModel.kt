@@ -1,5 +1,6 @@
 package com.neolife.devfine.core.viewmodel
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class HomeViewModel : ViewModel() {
+    var post: MutableState<PostView?> = mutableStateOf(null)
     var posts = MutableStateFlow<MutableList<PostView>>(mutableListOf())
     val isLoading = mutableStateOf(true)
 
@@ -26,6 +28,13 @@ class HomeViewModel : ViewModel() {
         }
     }
 
+    fun deletePost(postId: Int) {
+        viewModelScope.launch {
+            val req = RequestHandler.removePost(postId)
+            updateAllPosts()
+        }
+
+    }
 
     fun updateAllPosts() {
         viewModelScope.launch {

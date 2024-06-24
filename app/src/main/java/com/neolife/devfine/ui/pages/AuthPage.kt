@@ -88,6 +88,7 @@ fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
                 Text(text = "Логин")
             },
                 value = viewModel.login.value,
+                singleLine = true,
                 onValueChange = { viewModel.login.value = it })
 
             Spacer(modifier = Modifier.padding(10.dp))
@@ -95,6 +96,7 @@ fun AuthScreen(viewModel: AuthViewModel, navController: NavController) {
             OutlinedTextField(label = {
                 Text(text = "Пароль")
             },
+                singleLine = true,
                 visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                 value = viewModel.password.value,
                 onValueChange = { viewModel.password.value = it })
@@ -186,7 +188,7 @@ class AuthViewModel : ViewModel() {
         }
         viewModelScope.launch {
             isLoading.value = true
-            val req = RequestHandler.login(login.value.text, password.value.text)
+            val req = RequestHandler.login(login.value.text.trim(), password.value.text.trim())
             println(req)
             if (req == null) {
                 isLoading.value = false

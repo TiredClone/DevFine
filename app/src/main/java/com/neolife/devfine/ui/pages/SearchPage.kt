@@ -17,8 +17,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -39,8 +45,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -54,9 +62,11 @@ import com.halilibo.richtext.markdown.BasicMarkdown
 import com.halilibo.richtext.ui.RichTextStyle
 import com.halilibo.richtext.ui.material3.RichText
 import com.halilibo.richtext.ui.resolveDefaults
+import com.halilibo.richtext.ui.string.RichTextStringStyle
 import com.neolife.devfine.core.network.RequestHandler
 import com.neolife.devfine.core.network.Utils
 import com.neolife.devfine.core.network.responses.PostView
+import com.neolife.devfine.di.core.SharedPrefManager
 import com.neolife.devfine.ui.navigation.Screen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -78,7 +88,8 @@ fun SearchScreen(
     }
     val posts by viewModel.posts.collectAsStateWithLifecycle()
     val pullRefreshState = rememberPullToRefreshState()
-    var richTextStyle by remember { mutableStateOf(RichTextStyle().resolveDefaults()) }
+    var richTextStyle by remember { mutableStateOf(RichTextStyle(stringStyle = RichTextStringStyle(linkStyle = SpanStyle(color = color, textDecoration = TextDecoration.Underline))).resolveDefaults()) }
+
     var markdownParseOptions by remember { mutableStateOf(MarkdownParseOptions.Default) }
     if (pullRefreshState.isRefreshing) {
         LaunchedEffect(true) {
@@ -129,11 +140,13 @@ fun SearchScreen(
                 LazyColumn {
                     items(if (viewModel.query.value.text.isNotEmpty()) posts.toList().filter {
                         it.post.title.lowercase().contains(viewModel.query.value.text.lowercase())
-                    } else posts.toList(), key = { it.post.id }) { data ->
+                    } else posts.toList().asReversed(), key = { it.post.id }) { data ->
                         val content = Utils.parseMarkdown(data.post.content)
+                        var expanded by remember { mutableStateOf(false) }
                         Box(
                             modifier = Modifier
                                 .padding(5.dp)
+                                .fillMaxWidth()
                                 .clip(shape = RoundedCornerShape(15.dp))
                                 .background(colorBox)
                                 .clickable {
@@ -154,10 +167,12 @@ fun SearchScreen(
                                     modifier = Modifier
                                         .wrapContentSize()
                                         .clickable {
-                                            navController.navigate(Screen.ProfilePage.route.replace(
-                                                "{username}",
-                                                data.post.author?.username.toString()
-                                            ))
+                                            navController.navigate(
+                                                Screen.ProfilePage.route.replace(
+                                                    "{username}",
+                                                    data.post.author?.username.toString()
+                                                )
+                                            )
                                         }
                                 ) {
                                     AsyncImage(
@@ -187,6 +202,55 @@ fun SearchScreen(
                                                 text = Utils.TimeOrDate(data.post.createdAt.toString()),
                                                 fontSize = 15.sp
                                             )
+                                        }
+                                    }
+
+                                    if (!viewModel.isLoading.value && (data.post.author?.username == SharedPrefManager().getUsername() || RequestHandler.role == "ADMIN")) {
+                                        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                                            IconButton(
+                                                onClick = {
+                                                    expanded =
+                                                        !expanded
+                                                },
+                                                modifier = Modifier.clickable(onClick = {
+                                                    expanded =
+                                                        !expanded
+                                                })
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.MoreVert,
+                                                    contentDescription = "More options"
+                                                )
+                                                DropdownMenu(
+                                                    expanded = expanded,
+                                                    onDismissRequest = {
+                                                        expanded = false
+                                                    },
+                                                    modifier = Modifier.clickable(onClick = {
+                                                        expanded = false
+                                                    })
+                                                ) {
+                                                    DropdownMenuItem(
+                                                        onClick = {
+                                                            expanded = false
+                                                            navController.navigate(
+                                                                Screen.EditPostPage.route.replace(
+                                                                    "{post_id}",
+                                                                    data.post.id.toString()
+                                                                )
+                                                            )
+                                                        },
+                                                        text = { Text(text = "Изменить") })
+                                                    DropdownMenuItem(
+                                                        onClick = {
+                                                            viewModel.deletePost(
+                                                                data.post.id
+                                                            )
+                                                        },
+                                                        text = { Text(text = "Удалить") })
+                                                }
+                                            }
+
                                         }
                                     }
                                 }
@@ -237,6 +301,14 @@ class SearchViewModel : ViewModel() {
 
     init {
         getAllPosts()
+    }
+
+    fun deletePost(postId: Int) {
+        viewModelScope.launch {
+            val req = RequestHandler.removePost(postId)
+            getAllPosts()
+        }
+
     }
 
     fun getAllPosts() {

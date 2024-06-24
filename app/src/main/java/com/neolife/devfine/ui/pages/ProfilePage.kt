@@ -25,9 +25,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,7 +55,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -66,6 +71,7 @@ import com.halilibo.richtext.markdown.BasicMarkdown
 import com.halilibo.richtext.ui.RichTextStyle
 import com.halilibo.richtext.ui.material3.RichText
 import com.halilibo.richtext.ui.resolveDefaults
+import com.halilibo.richtext.ui.string.RichTextStringStyle
 import com.neolife.devfine.core.network.RequestHandler
 import com.neolife.devfine.core.network.Utils
 import com.neolife.devfine.core.network.responses.PostView
@@ -81,6 +87,10 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController, use
         navController.navigate(Screen.AuthPage.route)
     viewModel.username.value = username
     viewModel.loadingUserData()
+    val color = when {
+        isSystemInDarkTheme() -> Color.White
+        else -> Color.Black
+    }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val posts by viewModel.posts.collectAsStateWithLifecycle()
@@ -101,7 +111,8 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController, use
             }
         }
     val pullRefreshState = rememberPullToRefreshState()
-    var richTextStyle by remember { mutableStateOf(RichTextStyle().resolveDefaults()) }
+    var richTextStyle by remember { mutableStateOf(RichTextStyle(stringStyle = RichTextStringStyle(linkStyle = SpanStyle(color = color, textDecoration = TextDecoration.Underline))).resolveDefaults()) }
+
     var markdownParseOptions by remember { mutableStateOf(MarkdownParseOptions.Default) }
     if (pullRefreshState.isRefreshing) {
         LaunchedEffect(true) {
@@ -206,6 +217,7 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController, use
                 if (!viewModel.isLoading.value) {
                     items(posts.toList().asReversed()) { data ->
                         val content = Utils.parseMarkdown(data.post.content)
+                        var expanded by remember { mutableStateOf(false) }
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -259,6 +271,55 @@ fun ProfileScreen(viewModel: ProfileViewModel, navController: NavController, use
                                             )
                                         }
                                     }
+                                    if (!viewModel.isLoading.value && (data.post.author?.username == SharedPrefManager().getUsername() || RequestHandler.role == "ADMIN")) {
+                                        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                                            IconButton(
+                                                onClick = {
+                                                    expanded =
+                                                        !expanded
+                                                },
+                                                modifier = Modifier.clickable(onClick = {
+                                                    expanded =
+                                                        !expanded
+                                                })
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.MoreVert,
+                                                    contentDescription = "More options"
+                                                )
+                                                DropdownMenu(
+                                                    expanded = expanded,
+                                                    onDismissRequest = {
+                                                        expanded = false
+                                                    },
+                                                    modifier = Modifier.clickable(onClick = {
+                                                        expanded = false
+                                                    })
+                                                ) {
+                                                    DropdownMenuItem(
+                                                        onClick = {
+                                                            expanded = false
+                                                            navController.navigate(
+                                                                Screen.EditPostPage.route.replace(
+                                                                    "{post_id}",
+                                                                    data.post.id.toString()
+                                                                )
+                                                            )
+                                                        },
+                                                        text = { Text(text = "Изменить") })
+                                                    DropdownMenuItem(
+                                                        onClick = {
+                                                            viewModel.deletePost(
+                                                                data.post.id
+                                                            )
+                                                        },
+                                                        text = { Text(text = "Удалить") })
+                                                }
+                                            }
+
+                                        }
+                                    }
+
                                 }
                                 Text(
                                     text = data.post.title,
@@ -338,6 +399,14 @@ class ProfileViewModel : ViewModel() {
     val id = mutableIntStateOf(0)
     val goToAuth = mutableStateOf(false)
     val isUpdatingAvatar = mutableStateOf(false)
+
+    fun deletePost(postId: Int) {
+        viewModelScope.launch {
+            val req = RequestHandler.removePost(postId)
+            updateAllPosts()
+        }
+
+    }
 
     fun loadingUserData() {
 //        if (!SharedPrefManager().containsRefreshToken()) {

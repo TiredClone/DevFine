@@ -40,10 +40,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -51,6 +53,7 @@ import coil.compose.AsyncImage
 import com.halilibo.richtext.commonmark.MarkdownParseOptions
 import com.halilibo.richtext.ui.RichTextStyle
 import com.halilibo.richtext.ui.resolveDefaults
+import com.halilibo.richtext.ui.string.RichTextStringStyle
 import com.neolife.devfine.core.network.RequestHandler
 import com.neolife.devfine.core.network.Utils
 import com.neolife.devfine.core.viewmodel.PostScreenViewModel
@@ -70,7 +73,7 @@ fun PostComponent(
     }
 
     val context = LocalContext.current
-    var richTextStyle by remember { mutableStateOf(RichTextStyle().resolveDefaults()) }
+    var richTextStyle by remember { mutableStateOf(RichTextStyle(stringStyle = RichTextStringStyle(linkStyle = SpanStyle(color = color, textDecoration = TextDecoration.Underline))).resolveDefaults()) }
     var markdownParseOptions by remember { mutableStateOf(MarkdownParseOptions.Default) }
     Column(
         modifier = Modifier.padding(innerPadding),
@@ -79,7 +82,13 @@ fun PostComponent(
 
         ) {
         if (viewModel.isLoading.value) {
-            CircularProgressIndicator()
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            )
+            {
+                CircularProgressIndicator()
+            }
         } else {
             LazyColumn()
             {

@@ -45,6 +45,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.neolife.devfine.core.network.RequestHandler
+import com.neolife.devfine.ui.navigation.Screen
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -233,7 +234,7 @@ class CreatePostViewModel : ViewModel() {
                 return@launch
             }
             isLoading.value = false
-            navController.popBackStack()
+            navController.navigate(Screen.HomePage.route)
         }
     }
 }

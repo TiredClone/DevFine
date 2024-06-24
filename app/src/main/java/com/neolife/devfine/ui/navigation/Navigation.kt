@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.neolife.devfine.ui.pages.AboutScreen
+import com.neolife.devfine.ui.pages.AllUserPage
 import com.neolife.devfine.ui.pages.AuthScreen
 import com.neolife.devfine.ui.pages.CreatePostScreen
 import com.neolife.devfine.ui.pages.EditPostScreen
@@ -68,6 +69,10 @@ fun HomeNavHost(modifier: Modifier = Modifier,
                 backStackEntry ->
             backStackEntry.arguments?.getString("username")
                 ?.let { ProfileScreen(navController = navController, viewModel = viewModel(), username = it) }
+        }
+
+        composable(route = Screen.AllUsersPage.route) {
+            AllUserPage(navController = navController, viewModel = viewModel())
         }
 
         composable(route = Screen.ThemePage.route){

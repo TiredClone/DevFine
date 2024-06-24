@@ -58,7 +58,7 @@ class PostScreenViewModel : ViewModel() {
                     }
                     isUploadingComment.value = false
                     comment.value = TextFieldValue("")
-                    postLoading(postId.intValue)
+                    refreshPost()
                 }
             else
                 viewModelScope.launch {
@@ -71,7 +71,7 @@ class PostScreenViewModel : ViewModel() {
                     )
                     isUploadingComment.value = false
                     comment.value = TextFieldValue("")
-                    postLoading(postId.intValue)
+                    refreshPost()
                 }
         }
     }

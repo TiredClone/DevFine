@@ -12,5 +12,6 @@ sealed class Screen(val route: String){
     data object ThemePage: Screen("theme_page")
     data object CreatePostPage: Screen("createPost_page")
     data object PostPage: Screen("post_page/{post_id}")
+    data object AllUsersPage : Screen("all_users_page")
     data object  EditPostPage: Screen("editPost_page/{post_id}")
 }
